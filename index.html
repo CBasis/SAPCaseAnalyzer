@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAP Case Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root{--ink:#252632;--muted:#6a707c;--line:#e0e3e8;--paper:#fff;--bg:#f5f6f8;--sap:#0075bb;--evonik:#830051;--provider:#cf650d;--sap-light:#e8f4fc;--evonik-light:#f7eaf2;--provider-light:#fff0e1;--focus:#343b4b}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "IBM Plex Sans",sans-serif;letter-spacing:0}
+  button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #0075bb80;outline-offset:3px}
+  button{border:1px solid var(--line);background:white;border-radius:5px;padding:7px 11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px}
+  button:hover{background:#f0f2f5}button.primary{background:var(--ink);border-color:var(--ink);color:white}button.primary:hover{background:#444653}
+  svg.lucide{width:16px;height:16px;flex:none}button.icon{padding:8px;width:35px;flex:none}input,select{border:1px solid var(--line);border-radius:4px;background:#fff;padding:7px 9px;min-width:0}
+  .topbar{padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:#fff;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:600}.brand-mark{width:30px;height:30px;background:var(--evonik);color:white;display:grid;place-items:center;border-radius:5px}
+  .brand-mark svg{width:19px;height:19px}.topbar .subtle{font-size:12px}.actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+  main{width:100%;padding:24px 28px 48px}.case-switch-bar{display:flex;margin-bottom:16px}.case-header{display:flex;justify-content:space-between;gap:24px;align-items:start;margin-bottom:18px}
+  .eyebrow{font:11px "IBM Plex Mono",monospace;text-transform:uppercase;color:var(--muted);margin-bottom:7px}.case-header h1{font-size:25px;line-height:1.25;font-weight:600;margin:0 0 10px;max-width:900px;overflow-wrap:anywhere}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--muted)}.meta b{color:var(--ink);font-weight:500}.status{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 9px;background:var(--sap-light);color:var(--sap);border-radius:4px}.status::before{content:"";width:6px;height:6px;background:currentColor;border-radius:50%}
+  #notice{font-size:12px;color:var(--muted);margin:8px 0;overflow-wrap:anywhere}#notice.error{color:#a32b33}.subtle{color:var(--muted)}
+  .metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line);background:white;margin-bottom:22px;border-radius:6px}
+  .metric{padding:15px 18px;min-width:0}.metric+.metric{border-left:1px solid var(--line)}.metric label{display:block;font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .metric strong{font:500 26px/1.2 "IBM Plex Mono",monospace;display:block;overflow-wrap:anywhere}.metric small{display:block;font-size:11px;color:var(--muted);margin-top:5px}.metric .sap{color:var(--sap)}.metric .customer{color:var(--evonik)}
+  .filterbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:15px;margin-bottom:18px}.partners{display:flex;gap:4px;flex-wrap:wrap}.partner-toggle{position:relative;display:flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid var(--line);border-radius:4px;background:white;font-size:12px;cursor:pointer}
+  .partner-toggle input{accent-color:var(--color);margin:0;width:13px;height:13px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color);flex:none}.filterbar input[type=search]{flex:1;min-width:190px;max-width:380px}.check{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}.check input{accent-color:var(--focus)}.filter-count{font:11px "IBM Plex Mono",monospace;color:var(--muted);margin-left:auto}
+  .section-head{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-bottom:12px}.section-head h2{font-size:15px;font-weight:600;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:3px 0 0}.small{font-size:11px;color:var(--muted)}
+  .timeline-band{background:#fff;border:1px solid var(--line);border-radius:6px;padding:17px 18px 8px;margin-bottom:22px}.chart-scroll{overflow-x:auto}.timeline-chart{min-width:700px}.timeline-chart svg{display:block;width:100%;height:auto}.timeline-chart text{font-family:"IBM Plex Sans",sans-serif}.timeline-chart .domain{stroke:var(--line)}.timeline-chart .tick line{stroke:var(--line)}.timeline-chart .tick text{fill:var(--muted);font-size:10px}.event-mark{cursor:pointer}.event-mark:focus{outline:none;stroke:#222;stroke-width:3}.legend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--muted)}.legend span{display:inline-flex;align-items:center;gap:6px}.legend .line{width:18px;border-top:2px solid #c8cdd5}
+  .workspace{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:28px;align-items:start}.calendar-section{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:22px}.calendar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 18px}
+  .month h3{font-size:12px;font-weight:600;margin:0 0 8px}.month-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));font:9px "IBM Plex Mono",monospace;color:var(--muted);margin-bottom:4px;text-align:center}.month-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .day{border:1px solid transparent;background:#eceff3;border-radius:3px;aspect-ratio:1;min-height:29px;min-width:0;padding:2px;display:flex;flex-direction:column;justify-content:space-between;font:10px "IBM Plex Mono",monospace;cursor:default;color:#89909c}.day.empty{background:transparent}.day.active{background:white;border-color:var(--line);cursor:pointer;color:var(--ink)}.day.selected{outline:2px solid var(--ink);outline-offset:1px}.day:hover.active{border-color:var(--ink)}.day .daynum{line-height:1}.ticks{display:flex;gap:1px;align-items:end;width:100%;overflow:hidden}.tick-id{display:block;min-width:0;flex:1;background:var(--color);color:#fff;font:8px/13px "IBM Plex Mono",monospace;text-align:center;border-radius:1px}.day.mix{background:linear-gradient(135deg,#e8f4fc 0 50%,#f7eaf2 50%)}
+  .ledger-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 10px}.ledger-head h2{font-size:15px;margin:0}.ledger-head select{font-size:12px;max-width:180px}.activity-list{max-height:760px;overflow:auto;border-top:1px solid var(--line);scrollbar-width:thin}
+  .activity{width:100%;display:grid;grid-template-columns:40px 1fr;gap:11px;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:13px 10px 13px 0;align-items:start}.activity:hover{background:#eceff3}.activity.selected{background:#fff;border-left:3px solid var(--color);padding-left:7px}.activity .number{font:11px "IBM Plex Mono",monospace;color:var(--color);padding-top:3px;text-align:center}.activity-top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:11px}.activity-author{font-weight:600;color:var(--color)}.activity-title{font-size:12px;margin-top:4px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.activity-foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px;font-size:10px;color:var(--muted)}.tag{border:1px solid var(--line);border-radius:3px;padding:0 5px;font-size:10px;background:#fff}.gap-tag{font-family:"IBM Plex Mono",monospace}.gap-tag.long{color:#a74c0b}.empty-state{padding:30px 0;color:var(--muted);font-size:13px}
+  .detail{position:sticky;top:18px;background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}.detail-top{padding:16px 19px;border-bottom:1px solid var(--line);border-top:3px solid var(--color,var(--sap))}.detail-controls{display:flex;align-items:center;justify-content:space-between;gap:10px}.detail-controls .actions{flex-wrap:nowrap}.detail-controls .icon{width:30px;min-height:30px;padding:5px}.detail h2{font-size:17px;margin:12px 0 4px;overflow-wrap:anywhere}.detail-meta{font-size:11px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap}.partner-label{font-size:11px;color:var(--color);font-weight:600;display:flex;align-items:center;gap:6px}.detail-waits{display:grid;grid-template-columns:1fr 1fr;background:#fafbfc;border-bottom:1px solid var(--line)}.detail-waits>div{padding:11px 19px}.detail-waits>div+div{border-left:1px solid var(--line)}.detail-waits strong{font:500 16px "IBM Plex Mono",monospace;display:block}.detail-waits span{display:block;font-size:10px;color:var(--muted);margin-top:3px}.message-body{padding:20px;margin:0;font:13px/1.75 "IBM Plex Sans",sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;max-height:610px;overflow:auto}.detail-bottom{border-top:1px solid var(--line);padding:10px 19px;color:var(--muted);font-size:10px}
+  .response-section{border-top:1px solid var(--line);padding-top:18px;margin-top:22px}.response-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.response-row{display:grid;grid-template-columns:90px 1fr 90px;gap:10px;align-items:center;font-size:12px;margin:10px 0}.response-track{height:8px;background:#e9edf2;border-radius:2px;overflow:hidden}.response-fill{height:100%;background:var(--color)}.response-value{text-align:right;font:11px "IBM Plex Mono",monospace}.method-note{font-size:11px;color:var(--muted);margin:12px 0 0;max-width:800px}footer{border-top:1px solid var(--line);margin-top:24px;padding-top:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:10px;color:var(--muted)}
+  dialog{width:min(720px,calc(100% - 28px));max-height:90vh;border:1px solid var(--line);border-radius:8px;padding:22px;color:var(--ink);box-shadow:0 20px 70px #2223}dialog::backdrop{background:#1c20266b}dialog h2{font-size:18px;margin:0}dialog .dialog-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}dialog textarea{width:100%;min-height:260px;resize:vertical;border:1px solid var(--line);border-radius:4px;padding:12px;font:12px/1.5 "IBM Plex Mono",monospace;white-space:pre}dialog .dialog-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}.assignment-row{display:grid;grid-template-columns:1fr 170px;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.assignment-row strong{font-size:13px;display:block}.assignment-row small{font-size:11px;color:var(--muted)}#source-message,#assignment-note{font-size:12px;color:var(--muted)}[hidden]{display:none!important}.tooltip{position:fixed;z-index:5;background:#242731;color:white;border-radius:4px;padding:8px 10px;max-width:280px;font-size:11px;pointer-events:none;white-space:pre-line;box-shadow:0 3px 12px #0002}.loading{padding:50px 0;color:var(--muted)}
+  @media(min-width:1450px){.calendar-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+  @media(max-width:1050px){.calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.metric:nth-child(4){border-left:0}.metric:nth-child(n+4){border-top:1px solid var(--line)}.workspace{gap:18px;grid-template-columns:minmax(0,1fr) minmax(300px,1fr)}}
+  @media(max-width:740px){.topbar{padding:12px 16px;align-items:start;flex-wrap:wrap}.topbar .subtle{display:none}main{padding:18px 16px 30px}.case-header{display:block}.case-header h1{font-size:22px}.case-header>.status{margin-top:10px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric{padding:13px}.metric strong{font-size:23px}.metric:nth-child(3),.metric:nth-child(5){border-left:0}.metric:nth-child(4){border-left:1px solid var(--line)}.metric:nth-child(n+3){border-top:1px solid var(--line)}.metric:last-child{grid-column:1/-1}.workspace{display:flex;flex-direction:column}.workspace>div,.detail{width:100%;min-width:0}.detail{position:static;order:-1}.message-body{max-height:310px}.calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}.timeline-band{padding:14px 10px 8px}.timeline-band .section-head{flex-wrap:wrap}.response-grid{grid-template-columns:1fr}.filter-count{margin-left:0}.filterbar{gap:8px}.filterbar input[type=search]{max-width:none}.activity-list{max-height:550px}.day{min-height:27px}.assignment-row{grid-template-columns:1fr}.section-head{align-items:start}.tick-id{font-size:7px}}
+  .day{min-height:38px;aspect-ratio:auto;justify-content:flex-start;gap:3px}.ticks{display:grid;grid-template-columns:repeat(auto-fit,minmax(14px,1fr));gap:2px;overflow:visible}.tick-id{flex:none;line-height:10px}
+  .day.weekend{background:#dce0e6!important;color:#626975}.day.weekend.active{border-color:#b5bdc9}
+  .month-weekdays .weekend{background:#dce0e6;border-radius:2px;color:#4e5663}
+  .legend .weekend-key{width:13px;height:10px;background:#dce0e6;border:1px solid #c8cdd5;border-radius:2px}
+  .source-instructions{font-size:13px;color:var(--muted);padding-left:22px;margin:0 0 18px}.source-instructions li{padding:3px 0}.source-instructions strong{color:var(--ink);font-weight:500}kbd{font:11px "IBM Plex Mono",monospace;background:#f0f2f5;border:1px solid var(--line);border-radius:3px;padding:1px 4px;white-space:nowrap}
+  @media(min-width:1700px){.workspace{grid-template-columns:minmax(0,1fr) minmax(0,.9fr) minmax(0,1.1fr);gap:24px}.activity-overview{display:contents}.calendar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.calendar-section{border-bottom:0;margin-bottom:0}.activity-list{max-height:900px}}
+  @media(min-width:2300px){.calendar-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .tooltip{width:min(1450px,calc(100vw - 24px));max-width:none;background:#f5f6f8;color:var(--ink);padding:12px;pointer-events:auto;white-space:normal;border:1px solid #c8cdd5;box-shadow:0 8px 32px #2223;max-height:calc(100vh - 24px);overflow:auto}
+  .hover-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:9px;font-size:11px;color:var(--muted)}.hover-top .icon{width:28px;min-height:28px;padding:5px}
+  .hover-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr);gap:12px;align-items:start}.hover-column{min-width:0;max-height:min(65vh,700px);overflow:auto;scrollbar-width:thin;padding:2px}
+  .hover-column h3{font-size:10px;font-weight:600;margin:0 0 7px;color:var(--muted)}.hover-message{border:1px solid var(--color);border-radius:4px;background:#fff;margin-bottom:10px;overflow:hidden;font-size:10px;line-height:1.5}
+  .hover-message header{padding:9px 10px;border-bottom:1px solid var(--color)}.hover-message strong{color:var(--color);font-size:11px;font-weight:600;display:block;overflow-wrap:anywhere}.hover-message .hover-meta{font-size:9px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}.hover-message pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;margin:0;padding:10px}.hover-message footer{font-size:9px;padding:7px 10px;margin:0;border-top:1px solid var(--line)}
+  .hover-column.current .hover-message{font-size:12px}.hover-column.current strong{font-size:13px}.hover-column.current .hover-meta{font-size:10px}.hover-empty{font-size:10px;color:var(--muted);padding:8px 0}
+  @media(max-width:600px){.tooltip{padding:8px}.hover-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:5px}.hover-message header,.hover-message pre{padding:6px}.hover-message strong{font-size:10px}.hover-column.current strong{font-size:11px}.hover-column.current .hover-message{font-size:11px}}
+  .activity-icons{display:inline-flex;align-items:center;gap:3px;color:var(--color,var(--muted));vertical-align:middle}.activity-icons svg.lucide{width:13px;height:13px}.event-mark{pointer-events:all}.mapping-key{font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding:9px 0 5px}.mapping-key summary{cursor:pointer}.mapping-key .legend{padding-top:8px}.mapping-shape{width:22px;height:18px;overflow:visible;flex:none}
+  .event-mark[data-filled="true"]:focus{stroke:#fff;stroke-width:1;filter:drop-shadow(0 0 2px #252632)}
+  .metrics{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line);padding:1px}.metrics .metric{background:#fff;border:0!important;grid-column:auto;min-height:118px}.phase-key{display:flex;flex-wrap:wrap;gap:8px 20px;margin:8px 0;font-size:11px;color:var(--muted)}.phase-key span{display:inline-flex;gap:7px;align-items:center}.phase-key i{width:22px;border-top:6px solid var(--color)}.phase-key i.queue{border-top-style:dashed}.status-phase{cursor:help}.status-summary{margin-top:14px;overflow:auto}.status-summary table{width:100%;border-collapse:collapse;font-size:12px}.status-summary td,.status-summary th{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}.status-summary summary{cursor:pointer;font-size:12px;color:var(--muted)}.response-section{margin-top:0;margin-bottom:22px}.response-row .small{overflow-wrap:anywhere}.response-grid>div{min-width:0}
+  @media(max-width:740px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics .metric:last-child{grid-column:auto}.metric strong{font-size:21px}}
+  .action-log-table{max-height:320px;overflow:auto;margin-top:12px}.status-summary th{background:#edf0f4}.status-summary h3{font-size:12px;margin:14px 0 6px}.response-description{font-size:12px}.gap-context{display:block;font-size:10px;margin-top:3px;color:var(--muted)}
+  .case-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sap);margin-bottom:10px;text-decoration:none}.case-link:hover{text-decoration:underline}.case-link svg{width:14px;height:14px}
+  .ball-phases{margin-top:10px;font-size:11px}.ball-phases summary{cursor:pointer;color:var(--muted)}.ball-phase-list{max-height:280px;overflow:auto;margin-top:8px;padding-right:4px;scrollbar-width:thin}.ball-phase{padding:7px 0;border-top:1px solid var(--line)}.ball-phase-date{font-size:10px;color:var(--muted);overflow-wrap:anywhere}.ball-phase-bar{display:grid;grid-template-columns:minmax(0,1fr) 62px;gap:8px;align-items:center;margin-top:4px}.ball-phase-bar svg{display:block;width:100%;height:10px}.ball-phase-bar span{font:10px "IBM Plex Mono",monospace;text-align:right}.ball-scale-note{font-size:10px;color:var(--muted);margin:6px 0}.ownership-days{display:flex;flex-wrap:wrap;gap:1px;margin-top:9px}.ownership-day{display:block;width:4px;height:4px;flex:0 0 4px}.ownership-days-caption{font-size:9px!important;margin-top:4px!important}
+  .ball-phase{padding:3px 0}.ball-phase-bar{margin-top:0}.ball-more{margin-top:7px}.ball-more summary{font-size:10px}
+  .partner-toggle{max-width:100%;overflow-wrap:anywhere}.partner-toggle span{min-width:0}.response-row>span:first-child{overflow-wrap:anywhere;min-width:0}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark"><i data-lucide="messages-square"></i></span>Case Insights <span class="subtle">/ SAP support</span></div>
+  <div class="actions">
+    <button id="partners-button" title="Assign authors to customer or Provider for Outtasking"><i data-lucide="users-round"></i>Partners</button>
+    <button id="open-file" class="icon" title="Open a case text file" aria-label="Open a case text file"><i data-lucide="file-up"></i></button>
+    <input type="file" id="file" accept=".txt,text/plain" hidden>
+  </div>
+</header>
+<main>
+  <div class="case-switch-bar"><button id="source-button"><i data-lucide="clipboard-paste"></i>Switch to other case</button></div>
+  <div id="notice" role="status" aria-live="polite">Reading 4711-2026.txt...</div>
+  <div id="dashboard" hidden>
+    <section class="case-header">
+      <div><div class="eyebrow" id="case-id"></div><h1 id="case-title"></h1><a class="case-link" id="case-link" target="_blank" rel="noopener noreferrer" hidden><i data-lucide="external-link"></i>Open case in SAP4Me</a><div class="meta" id="case-meta"></div></div>
+      <span class="status" id="case-status"></span>
+    </section>
+    <section class="metrics" id="metrics" aria-label="Case metrics"></section>
+    <div class="filterbar">
+      <div class="partners" aria-label="Partner filters">
+        <label class="partner-toggle" style="--color:var(--sap)"><input type="checkbox" value="sap" checked>SAP</label>
+        <label class="partner-toggle" style="--color:var(--evonik)"><input type="checkbox" value="evonik" checked><span data-customer-name>Customer</span></label>
+        <label class="partner-toggle" style="--color:var(--provider)"><input type="checkbox" value="provider" checked>Provider for Outtasking</label>
+      </div>
+      <input type="search" id="search" aria-label="Search case messages" placeholder="Search messages, people, error codes...">
+      <label class="check"><input type="checkbox" id="hide-admin">Hide attachments &amp; contacts</label>
+      <button id="clear-filters" class="icon" title="Reset all filters" aria-label="Reset all filters"><i data-lucide="filter-x"></i></button>
+      <span class="filter-count" id="filter-count"></span>
+    </div>
+    <section class="timeline-band">
+      <div class="section-head"><div><h2>Conversation over time</h2><p id="timeline-range"></p></div><div class="legend"><span><i class="dot" style="--color:var(--sap)"></i>SAP</span><span><i class="dot" style="--color:var(--evonik)"></i><span data-customer-name>Customer</span></span><span><i class="dot" style="--color:var(--provider)"></i>Provider for Outtasking</span><span><i class="line"></i>Between activities</span></div></div>
+      <div class="chart-scroll"><div id="timeline" class="timeline-chart"></div></div>
+      <div class="section-head"><span class="small" id="range-label">Full case period</span><button id="reset-range" class="icon" title="Reset timeline selection" aria-label="Reset timeline selection"><i data-lucide="scan-line"></i></button></div>
+    </section>
+    <div class="workspace">
+      <div class="activity-overview">
+        <section class="calendar-section"><div class="section-head"><div><h2>Activity calendar</h2><p id="calendar-caption"></p></div><button id="clear-day" class="icon" title="Clear selected day" aria-label="Clear selected day"><i data-lucide="calendar-x-2"></i></button></div><div class="calendar-grid" id="calendar"></div></section>
+        <section><div class="ledger-head"><h2 id="activity-heading">Activity stream</h2><select id="sort" aria-label="Activity order"><option value="oldest">Oldest first</option><option value="newest">Newest first</option><option value="longest">Longest gap first</option></select></div><div class="activity-list" id="activity-list"></div></section>
+      </div>
+      <aside class="detail" id="detail" aria-label="Selected activity"></aside>
+    </div>
+    <section class="response-section" id="response-metrics"><div class="section-head"><div><h2>Ownership &amp; Response Rhythm</h2><p id="response-description"></p></div></div><div class="response-grid"><div id="response-bars"></div><div id="longest-gaps"></div></div><details class="status-summary" id="status-summary"><summary>Status durations &amp; transitions</summary><div id="status-totals"></div></details><p class="method-note" id="method-note"></p></section>
+    <footer><span id="source-label"></span><span>Case text is processed in this browser. No case data is uploaded.</span></footer>
+  </div>
+</main>
+<dialog id="source-dialog" aria-labelledby="source-heading">
+  <div class="dialog-head"><h2 id="source-heading">Switch to other case</h2><button class="icon" data-close="source-dialog" title="Close" aria-label="Close"><i data-lucide="x"></i></button></div>
+  <ol class="source-instructions" id="source-instructions">
+    <li>Open the SAP case in <strong>SAP4Me</strong> and choose <strong>Export Case</strong> in the upper-right corner.</li>
+    <li>On the exported page, press <kbd>Ctrl+A</kbd> to select the full page content, then <kbd>Ctrl+C</kbd> to copy it.</li>
+    <li>Return here and paste into the text field with <kbd>Ctrl+V</kbd>, or choose <strong>Take from clipboard</strong>.</li>
+    <li>Choose <strong>Analyze case</strong> to switch the dashboard to that case.</li>
+  </ol>
+  <textarea id="source-text" aria-label="SAP case export text" aria-describedby="source-instructions" placeholder="Paste the exported SAP case content here (Ctrl+V)..."></textarea>
+  <div id="source-message" role="status" aria-live="polite"></div>
+  <div class="dialog-actions"><button id="clipboard"><i data-lucide="clipboard-paste"></i>Take from clipboard</button><button class="primary" id="analyze"><i data-lucide="chart-no-axes-combined"></i>Analyze case</button></div>
+</dialog>
+<dialog id="partners-dialog" aria-labelledby="partners-heading"><div class="dialog-head"><h2 id="partners-heading">Partner assignments</h2><button class="icon" data-close="partners-dialog" title="Close" aria-label="Close"><i data-lucide="x"></i></button></div><p id="assignment-note">SAP is identified from the message header. Other authors default to the customer unless their author name identifies a provider. Assign external authors below.</p><div id="assignments"></div><p id="assignment-storage-status" role="status" aria-live="polite"></p><div class="dialog-actions"><span class="small">Saved in a browser cookie for one year, shared across cases.</span><button class="primary" id="save-partners">Apply assignments</button></div></dialog>
+<div class="tooltip" id="tooltip" role="dialog" aria-label="Activity conversation preview" hidden></div>
+<script type="application/json" id="activity-mapping-rules">
+{
+  "maintenance": "First matching rule wins. Patterns are case-insensitive regular expressions. Match field is body (default) or type. All patterns in all must match, at least one in any must match when supplied, and none in none may match. Icons are Lucide names (maximum two). Omit timeline to keep the default filled circle. Shapes: circle, square, triangle, diamond, arrow-up, double-arrow. Filled is true or false. Labels describe content, not a confirmed outcome.",
+  "rules": [
+    {
+      "id": "contact-added",
+      "label": "Contact added",
+      "match": {"all": ["^Contact\\b", "\\badded\\.?\\s*$"]},
+      "icons": ["user-round", "plus"],
+      "timeline": {"shape": "square", "filled": false}
+    },
+    {
+      "id": "attachment-uploaded",
+      "label": "Attachment uploaded",
+      "match": {"all": ["^Attachment uploaded\\b"]},
+      "icons": ["cloud-upload"],
+      "timeline": {"shape": "arrow-up", "filled": true}
+    },
+    {
+      "id": "case-forwarded",
+      "label": "Case forwarding",
+      "match": {"any": ["\\bforward(?:ing|ed)?\\s+(?:(?:this|the|your)\\s+)?(?:case|incident|issue)\\b"]},
+      "icons": ["circle-arrow-right"],
+      "timeline": {"shape": "circle", "filled": false}
+    },
+    {
+      "id": "connection-credentials",
+      "label": "Connection / credentials",
+      "match": {"any": ["\\bcredentials?\\b", "\\b(?:remote|WTS|DSO|PSO)\\s+connection\\b", "\\bconnection\\s+is\\s+(?:open|closed)\\b", "\\b(?:open|extend|close|reopen)\\b[\\s\\S]{0,60}\\bconnection\\b"]},
+      "icons": ["arrow-left-right"],
+      "timeline": {"shape": "double-arrow", "filled": true}
+    },
+    {
+      "id": "solution-proposal",
+      "label": "Solution proposal (not confirmed resolved)",
+      "match": {"any": ["\\bProposed Solution:", "\\bResolution step\\b"]},
+      "icons": ["lightbulb"],
+      "timeline": {"shape": "diamond", "filled": false}
+    },
+    {
+      "id": "problem-description",
+      "label": "Problem description",
+      "match": {"field": "type", "all": ["^Problem Description$"]},
+      "icons": ["message-square-warning"],
+      "timeline": {"shape": "triangle", "filled": false}
+    },
+    {
+      "id": "business-impact",
+      "label": "Business impact",
+      "match": {"field": "type", "all": ["^Business Impact$"]},
+      "icons": ["briefcase-business", "triangle-alert"]
+    }
+  ]
+}
+</script>
+<script>
+"use strict";
+const DEFAULT_FILE="4711-2026.txt";
+const PARTNERS={sap:{label:"SAP",color:"#0075bb"},evonik:{label:"Customer",color:"#830051"},infosys:{label:"Provider for Outtasking",color:"#cf650d"},stefanini:{label:"Provider for Outtasking",color:"#cf650d"},provider:{label:"Provider for Outtasking",color:"#cf650d"}};
+const $=id=>document.getElementById(id);
+const escapeHTML=value=>String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const DAY=86400000;
+const ASSIGNMENTS_COOKIE="sapCasePartnerAssignments";
+const ASSIGNMENTS_PATH=new URL(".",location.href).pathname;
+function readAssignments(){
+  const result=Object.create(null);
+  try{
+    const value=document.cookie.split(";").map(item=>item.trim()).find(item=>item.startsWith(ASSIGNMENTS_COOKIE+"="));
+    if(!value) return result;
+    const stored=JSON.parse(decodeURIComponent(value.slice(ASSIGNMENTS_COOKIE.length+1)));
+    if(!stored || typeof stored!=="object" || Array.isArray(stored)) return result;
+    for(const [author,partner] of Object.entries(stored)){
+      if(["evonik","infosys","stefanini","provider"].includes(partner)) result[author]=partner;
+    }
+  }catch(error){}
+  return result;
+}
+function saveAssignments(next){
+  const value=encodeURIComponent(JSON.stringify(next));
+  if((ASSIGNMENTS_COOKIE+value+ASSIGNMENTS_PATH).length>3800) throw new Error("Too many author assignments for one cookie. Existing saved assignments have been kept.");
+  document.cookie=`${ASSIGNMENTS_COOKIE}=${value}; Max-Age=31536000; Path=${ASSIGNMENTS_PATH}; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;
+  if(!document.cookie.split(";").some(item=>item.trim()===`${ASSIGNMENTS_COOKIE}=${value}`))
+    throw new Error("The browser blocked the settings cookie. Allow cookies for this site and try again.");
+}
+let model=null,selectedId=null,visible=[],assignments=readAssignments(),range=null,selectedDay=null,sourceName=DEFAULT_FILE;
+const dateFormat=new Intl.DateTimeFormat("en-GB",{weekday:"short",day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"});
+const monthFormat=new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
+const timeFormat=new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZone:"UTC"});
+const shortDate=date=>dateFormat.format(date);
+const dayKey=date=>date.toISOString().slice(0,10);
+const icon=name=>`<i data-lucide="${name}"></i>`;
+function icons(){if(globalThis.lucide) lucide.createIcons();}
+const ACTIVITY_RULES=JSON.parse($("activity-mapping-rules").textContent).rules.map(rule=>({
+  ...rule,match:{...rule.match,...Object.fromEntries(["all","any","none"].map(key=>[key,(rule.match[key]||[]).map(pattern=>new RegExp(pattern,"i"))]))}
+}));
+const DEFAULT_ACTIVITY_MAPPING={id:"other",label:"Other activity",icons:["message-circle"]};
+function activityMapping(activity){
+  return ACTIVITY_RULES.find(rule=>{
+    const text=rule.match.field==="type"?activity.type:activity.body;
+    return rule.match.all.every(pattern=>pattern.test(text))&&(!rule.match.any.length||rule.match.any.some(pattern=>pattern.test(text)))&&!rule.match.none.some(pattern=>pattern.test(text));
+  })||DEFAULT_ACTIVITY_MAPPING;
+}
+function activityIcons(activity){
+  const mapping=activityMapping(activity);
+  return `<span class="activity-icons" title="${escapeHTML(mapping.label)}" role="img" aria-label="${escapeHTML(mapping.label)}">${mapping.icons.slice(0,2).map(name=>icon(escapeHTML(name))).join("")}</span>`;
+}
+function activityShape(activity){return activityMapping(activity).timeline?.shape||"circle";}
+function activityFilled(activity){return activityMapping(activity).timeline?.filled!==false;}
+function shapePath(shape){
+  if(shape==="arrow-up") return "M0 -7 L5 -2 L2 -2 L2 6 L-2 6 L-2 -2 L-5 -2 Z";
+  if(shape==="double-arrow") return "M-7 0 L-3 -4 L-3 -1.5 L3 -1.5 L3 -4 L7 0 L3 4 L3 1.5 L-3 1.5 L-3 4 Z";
+  const types={circle:d3.symbolCircle,square:d3.symbolSquare,triangle:d3.symbolTriangle,diamond:d3.symbolDiamond};
+  return d3.symbol().type(types[shape]||d3.symbolCircle).size(64)();
+}
+function renderMappingLegend(){
+  document.querySelector(".timeline-band").insertAdjacentHTML("beforeend",`<details class="mapping-key"><summary>Activity symbols</summary><div class="legend">${[...ACTIVITY_RULES,DEFAULT_ACTIVITY_MAPPING].map(rule=>`<span><svg class="mapping-shape" viewBox="-12 -10 24 20" aria-hidden="true"><path d="${shapePath(rule.timeline?.shape||"circle")}" fill="${rule.timeline?.filled===false?"none":"currentColor"}" stroke="currentColor" stroke-width="1.3"/></svg>${rule.icons.slice(0,2).map(name=>icon(escapeHTML(name))).join("")}${escapeHTML(rule.label)}</span>`).join("")}</div></details>`);
+}
+function duration(ms){
+  const minutes=Math.max(0,Math.floor(ms/60000));
+  if(ms<60000) return `${Math.max(0,Math.floor(ms/1000))}s`;
+  if(minutes<60) return `${minutes}m`;
+  const hours=Math.floor(minutes/60);
+  if(hours<24) return `${hours}h ${minutes%60}m`;
+  return `${Math.floor(hours/24)}d ${hours%24}h`;
+}
+function parseStamp(value){
+  const match=/^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\s*(CET|CEST|UTC|GMT)?$/i.exec(value.trim());
+  if(!match) return null;
+  const parts=match.slice(1,7).map(Number), date=new Date(Date.UTC(parts[0],parts[1]-1,parts[2],parts[3],parts[4],parts[5]));
+  if(date.getUTCFullYear()!==parts[0] || date.getUTCMonth()!==parts[1]-1 || date.getUTCDate()!==parts[2] || parts[3]>23 || parts[4]>59 || parts[5]>59) return null;
+  return {date,zone:(match[7]||"CET").toUpperCase()};
+}
+function categoryOf(type,body){
+  if(/^Attachment uploaded\b/i.test(body.trim())) return "Attachment";
+  if(/^Contact .+ added\.?$/is.test(body.trim())) return "Contact";
+  if(/Problem Description/i.test(type)) return "Problem";
+  if(/Business Impact/i.test(type)) return "Business impact";
+  if(/Proposed Solution:|\bResolution step\b/i.test(body)) return "Solution proposal";
+  if(/\?|could you|please (?:provide|share|check|try|reproduce|confirm)/i.test(body)) return "Request / investigation";
+  return "Update";
+}
+function parseActionLog(text){
+  const section=/^Action Log\s*$/m.exec(text);
+  if(!section) return [];
+  const actions=[];let currentDate="";
+  text.slice(section.index+section[0].length).split("\n").forEach((line,index)=>{
+    const cells=line.split("\t").map(cell=>cell.trim());
+    if(cells.length<4) return;
+    const date=/\b(\d{4}\/\d{2}\/\d{2})\b/.exec(cells[0]);
+    if(date) currentDate=date[1];
+    const stamp=parseStamp(`${currentDate} ${cells[1]}`);
+    if(!stamp) return;
+    actions.push({rawDate:stamp.date,date:stamp.date,zone:stamp.zone,author:cells[2],action:cells[3],oldValue:cells[4]||"",newValue:cells[5]||"",sourceIndex:index});
+  });
+  return actions.sort((a,b)=>a.date-b.date||a.sourceIndex-b.sourceIndex);
+}
+function alignActionLog(actions,events){
+  const memos=actions.filter(action=>action.action==="Memo/Text changed"&&action.newValue==="Info for Customer");
+  const messages=events.filter(event=>event.type==="Info for Customer");
+  const candidates=[];
+  for(let hours=-12;hours<=14;hours++){
+    const used=new Set();
+    for(const memo of memos){
+      const match=messages.map((event,index)=>({index,diff:Math.abs(+event.date-(+memo.rawDate+hours*3600000))}))
+        .filter(item=>!used.has(item.index)&&item.diff<=120000).sort((a,b)=>a.diff-b.diff)[0];
+      if(match) used.add(match.index);
+    }
+    candidates.push({hours,matches:used.size});
+  }
+  candidates.sort((a,b)=>b.matches-a.matches||Math.abs(a.hours)-Math.abs(b.hours));
+  const best=candidates[0],enough=best.matches>=5&&best.matches>=Math.min(memos.length,messages.length)*.8&&best.matches>candidates[1].matches*1.5;
+  const offset=enough?best.hours*3600000:0;
+  return {actions:actions.map(action=>({...action,date:new Date(+action.rawDate+offset)})),offset,matches:best.matches,verified:enough};
+}
+function statusInfo(status){
+  if(status==="Sent to SAP") return {owner:"sap",label:"SAP queue",color:"#0075bb",dash:"6 4"};
+  if(status==="In Processing by SAP") return {owner:"sap",label:"SAP processing",color:"#0075bb"};
+  if(["Case created","Not Sent to SAP","Customer Action","SAP Proposed Solution"].includes(status))
+    return {owner:"customer",label:status==="SAP Proposed Solution"?"Customer / proposed solution":"Customer side",color:"#830051"};
+  return {owner:"other",label:"Other / unassigned",color:"#777f8c"};
+}
+function statusPhases(actions,end){
+  const changes=actions.filter(action=>action.action==="Case created"||action.action==="Status");
+  const transitions=[];
+  for(const action of changes){
+    const status=action.action==="Case created"?"Case created":action.newValue;
+    if(!status||transitions.at(-1)?.status===status) continue;
+    transitions.push({...action,status});
+  }
+  return transitions.map((action,index)=>({...action,start:action.date,end:transitions[index+1]?.date||end,
+    closed:index<transitions.length-1,...statusInfo(action.status)})).filter(phase=>phase.end>=phase.start);
+}
+function parseCase(text){
+  const normalized=text.replace(/^\uFEFF/,"").replace(/\r\n?/g,"\n");
+  const firstHeader=/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2} (?:CET|CEST|UTC|GMT)\s+-\s+/m.exec(normalized);
+  if(!firstHeader) throw new Error("No communication entries found. Include timestamped message headers from the case export.");
+  const preamble=normalized.slice(0,firstHeader.index);
+  const incident=/^Incident:\s*(.+)$/m.exec(preamble)?.[1]||"SAP support case";
+  const titleMatch=/^(.+?)\s+-\s+(.+)$/.exec(incident);
+  const fields={};preamble.split("\n").forEach(line=>{const match=/^([A-Za-z][A-Za-z ]+)\t+(.+)$/.exec(line);if(match) fields[match[1].trim()]=match[2].trim();});
+  const remainder=normalized.slice(firstHeader.index);
+  const boundary=/^\s*(?:Contacts|Attachments|Action Log|Change History|Change Log|Processing Log|History)\s*$/m.exec(remainder);
+  const communication=boundary?remainder.slice(0,boundary.index):remainder;
+  const header=/^(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2} (?:CET|CEST|UTC|GMT))\s+-\s+([^\n]*?):\s*([^\n]+)$/gm;
+  const headers=[...communication.matchAll(header)],events=[];
+  headers.forEach((match,index)=>{
+    const stamp=parseStamp(match[1]);
+    if(!stamp) throw new Error(`Invalid activity timestamp: ${match[1]}`);
+    const body=communication.slice(match.index+match[0].length,headers[index+1]?.index??communication.length).trim();
+    const author=match[3].trim(),type=match[2].trim();
+    const partner=/^SAP(?:\s|$)/i.test(author)||/^Info for Customer$/i.test(type)?"sap":/\binfosys\b/i.test(author)?"infosys":/\bstefanini\b/i.test(author)?"stefanini":"evonik";
+    events.push({date:stamp.date,zone:stamp.zone,stamp:match[1],type,author,body,partner,category:categoryOf(type,body),sourceIndex:index});
+  });
+  events.sort((a,b)=>a.date-b.date||a.sourceIndex-b.sourceIndex);
+  events.forEach((event,index)=>{event.id=index+1;event.gap=index?event.date-events[index-1].date:null;});
+  if(!events.length) throw new Error("No valid communication messages were found.");
+  const tail=normalized.trim().split("\n").map(s=>s.trim()).filter(Boolean).at(-1);
+  const exported=parseStamp(tail||"");
+  const alignment=alignActionLog(parseActionLog(normalized),events);
+  const snapshot=exported&&exported.date>=events.at(-1).date?exported:null;
+  const lastAction=alignment.actions.at(-1)?.date;
+  const end=new Date(Math.max(+events.at(-1).date,+(snapshot?.date||0),+(lastAction||0)));
+  const phases=statusPhases(alignment.actions,end);
+  return {id:titleMatch?.[1]||incident,title:titleMatch?.[2]||incident,fields,events,exported:snapshot,
+    actions:alignment.actions,alignment,phases,end};
+}
+function partnerOf(event){return assignments[event.author]||event.partner;}
+function groupOf(event){return partnerOf(event)==="sap"?"sap":partnerOf(event)==="evonik"?"evonik":"provider";}
+function sideOf(event){return partnerOf(event)==="sap"?"sap":"customer";}
+function turnsOf(events){
+  const turns=[];
+  events.forEach(event=>{const previous=turns.at(-1);if(previous?.side===sideOf(event)) previous.events.push(event);else turns.push({side:sideOf(event),start:event.date,events:[event]});});
+  return turns.slice(0,-1).map((turn,index)=>({...turn,end:turns[index+1].start,wait:turns[index+1].start-turn.start,responder:turns[index+1].side}));
+}
+function ballPhases(){
+  const groups=[];
+  for(const phase of model.phases){
+    const previous=groups.at(-1);
+    if(previous?.owner===phase.owner){previous.end=phase.end;previous.closed=phase.closed;}
+    else groups.push({owner:phase.owner,start:phase.start,end:phase.end,closed:phase.closed});
+  }
+  return groups;
+}
+function ownershipWindows(){
+  if(!model.phases.length) return turnsOf(model.events);
+  const groups=ballPhases();
+  return groups.filter((group,index)=>group.closed&&group.owner!=="other"&&groups[index+1]?.owner!=="other")
+    .map(group=>({...group,wait:group.end-group.start,responder:group.owner}));
+}
+function caseActivityGaps(){
+  const points=[...model.events.map(event=>({date:event.date,label:`Communication #${event.id}`,id:event.id})),
+    ...model.actions.map(action=>({date:action.date,label:`Action log: ${action.action}${action.newValue?" / "+action.newValue:""}`}))]
+    .sort((a,b)=>a.date-b.date);
+  const unique=points.filter((point,index)=>!index||+point.date!==+points[index-1].date);
+  return unique.slice(1).map((point,index)=>({start:unique[index].date,end:point.date,wait:point.date-unique[index].date,
+    from:unique[index].label,to:point.label,id:point.id||model.events.find(event=>event.date>=point.date)?.id||model.events.at(-1).id}));
+}
+function filteredEvents(includeDay=true){
+  const groups=new Set([...document.querySelectorAll('.partner-toggle input:checked')].map(input=>input.value));
+  const query=$("search").value.toLowerCase().trim();
+  return model.events.filter(event=>groups.has(groupOf(event))&&(!range||(event.date>=range[0]&&event.date<=range[1]))&&(!includeDay||!selectedDay||dayKey(event.date)===selectedDay)&&(!$("hide-admin").checked||!["Attachment","Contact"].includes(event.category))&&(!query||`${event.author} ${event.body} ${event.type} ${PARTNERS[partnerOf(event)].label} #${event.id}`.toLowerCase().includes(query)));
+}
+function ownershipDays(){
+  const start=model.phases[0]?.start||model.events[0].date;
+  return d3.utcDays(d3.utcDay.floor(start),d3.utcDay.offset(d3.utcDay.floor(model.end),1)).map(date=>{
+    const next=d3.utcDay.offset(date,1),totals={sap:0,customer:0,other:0};
+    for(const phase of model.phases) totals[phase.owner]+=Math.max(0,Math.min(+phase.end,+next)-Math.max(+phase.start,+date));
+    const owner=Object.keys(totals).sort((a,b)=>totals[b]-totals[a])[0];
+    return {date,totals,owner:totals[owner]>0?owner:"other"};
+  });
+}
+function ballPhaseChart(owner,phases,scale,max){
+  const sorted=phases.filter(phase=>phase.owner===owner).sort((a,b)=>(b.end-b.start)-(a.end-a.start)||a.start-b.start);
+  const color=owner==="sap"?PARTNERS.sap.color:PARTNERS.evonik.color;
+  const row=phase=>{
+    const period=`${shortDate(phase.start)} ${timeFormat.format(phase.start)} - ${shortDate(phase.end)} ${timeFormat.format(phase.end)}${phase.closed?"":" / ongoing"}`;
+    return `<div class="ball-phase" data-duration="${phase.end-phase.start}" title="${escapeHTML(period)}"><div class="ball-phase-bar"><svg viewBox="0 0 200 10" preserveAspectRatio="none" role="img" aria-label="${duration(phase.end-phase.start)} / ${escapeHTML(period)}"><rect width="200" height="8" y="1" fill="#edf0f4"/><rect class="ball-duration-bar" width="${scale(phase.end-phase.start)}" height="8" y="1" fill="${color}"/></svg><span>${duration(phase.end-phase.start)}</span></div></div>`;
+  };
+  return `<details class="ball-phases" data-owner="${owner}"><summary>Top ${Math.min(10,sorted.length)} of ${sorted.length} phases / longest first</summary><p class="ball-scale-note">Shared scale: full bar = ${duration(max)}</p><div class="ball-phase-list">${sorted.slice(0,10).map(row).join("")}${sorted.length>10?`<details class="ball-more"><summary>Show remaining ${sorted.length-10} phases</summary>${sorted.slice(10).map(row).join("")}</details>`:""}</div></details>`;
+}
+function renderMetrics(){
+  const events=model.events,first=events[0],turns=ownershipWindows();
+  const customer=turns.filter(turn=>turn.responder==="customer");
+  const median=items=>items.length?duration(d3.median(items,item=>item.wait)):"--";
+  const longest=caseActivityGaps().sort((a,b)=>b.wait-a.wait)[0];
+  const total=predicate=>model.phases.filter(predicate).reduce((sum,phase)=>sum+(phase.end-phase.start),0);
+  const bypasses=model.phases.filter((phase,index)=>phase.status==="Sent to SAP"&&phase.closed&&model.phases[index+1]?.owner==="customer");
+  const phaseTotal=total(()=>true),share=amount=>phaseTotal?`${(100*amount/phaseTotal).toFixed(1)}% of observed status time`:"No status history";
+  const values=[
+    [String(events.length),"Activities",`${events.filter(e=>sideOf(e)==="sap").length} SAP / ${events.filter(e=>sideOf(e)!=="sap").length} customer-side`,""],
+    [duration(model.end-(model.phases[0]?.start||first.date)),"Observed case span",`${shortDate(model.phases[0]?.start||first.date)} - ${shortDate(model.end)}`,""],
+    [median(customer),model.phases.length?"Customer median handoff":"Customer median reply",`${customer.length} completed windows`,"customer"],
+    [longest?duration(longest.wait):"--","Longest activity gap",model.actions.length?"Communications + all action-log entries":"Communications only",""]
+  ];
+  if(model.phases.length) values.push(
+    [duration(total(p=>p.owner==="sap")),"Ball with SAP",share(total(p=>p.owner==="sap")),"sap"],
+    [duration(total(p=>p.status==="Sent to SAP")),"SAP queue",`${model.phases.filter(p=>p.status==="Sent to SAP").length} sent-to-SAP phases`,"sap"],
+    [duration(total(p=>p.status==="In Processing by SAP")),"SAP processing status",share(total(p=>p.status==="In Processing by SAP")),"sap"],
+    [duration(total(p=>p.owner==="customer")),`Ball with ${PARTNERS.evonik.label}`,share(total(p=>p.owner==="customer")),"customer"],
+    [String(bypasses.length),"Returned without processing",'Queue -> customer, no intervening "In Processing" status',""],
+    [model.phases.at(-1).status,"Latest logged status",`${duration(model.phases.at(-1).end-model.phases.at(-1).start)} through last observed snapshot`,""]);
+  const other=total(phase=>phase.owner==="other");
+  if(other) values.push([duration(other),"Other / unassigned status",share(other),""]);
+  $("metrics").innerHTML=values.map(([value,label,sub,cls])=>`<div class="metric"><label>${escapeHTML(label)}</label><strong class="${cls}">${escapeHTML(value)}</strong><small>${escapeHTML(sub)}</small></div>`).join("");
+  const phases=ballPhases(),max=Math.max(1,...phases.filter(phase=>phase.owner!=="other").map(phase=>phase.end-phase.start));
+  const scale=d3.scaleLinear().domain([0,max]).range([0,200]);
+  for(const tile of $("metrics").children){
+    const label=tile.querySelector("label").textContent;
+    if(label==="Ball with SAP"||label===`Ball with ${PARTNERS.evonik.label}`) tile.insertAdjacentHTML("beforeend",ballPhaseChart(label==="Ball with SAP"?"sap":"customer",phases,scale,max));
+    if(label==="Observed case span"){
+      const days=ownershipDays();
+      tile.insertAdjacentHTML("beforeend",`<div class="ownership-days" aria-label="${days.length} days, colored by majority case ownership">${days.map(day=>{
+        const color=day.owner==="sap"?PARTNERS.sap.color:day.owner==="customer"?PARTNERS.evonik.color:"#777f8c";
+        const split=Object.entries(day.totals).filter(([,time])=>time>0).map(([owner,time])=>`${owner==="sap"?"SAP":owner==="customer"?PARTNERS.evonik.label:"Other"}: ${duration(time)}`).join(" / ");
+        return `<span class="ownership-day" data-date="${dayKey(day.date)}" data-owner="${day.owner}" style="background:${color}" title="${shortDate(day.date)} / ${escapeHTML(split||"Ownership unavailable")}"></span>`;
+      }).join("")}</div><small class="ownership-days-caption">${days.length} days / 4px per day / majority owner; grey = other or unknown</small>`);
+    }
+  }
+}
+let tipHideTimer;
+function nearbyActivities(activity){
+  const start=d3.utcDay.offset(d3.utcDay.floor(activity.date),-1),end=d3.utcDay.offset(d3.utcDay.floor(activity.date),2);
+  const nearby=model.events.filter(event=>event.id!==activity.id&&event.date>=start&&event.date<end);
+  return {older:nearby.filter(event=>event.date<activity.date||(+event.date===+activity.date&&event.id<activity.id)),
+    newer:nearby.filter(event=>event.date>activity.date||(+event.date===+activity.date&&event.id>activity.id))};
+}
+function readableActivityText(body){
+  return body.replace(/\r\n?/g,"\n").replace(/^[\t ]+$/gm,"").replace(/\n{3,}/g,"\n\n").trim();
+}
+function hoverMessage(activity){
+  const partner=PARTNERS[partnerOf(activity)],next=model.events[activity.id];
+  return `<article class="hover-message" data-activity-id="${activity.id}" style="--color:${partner.color}"><header><strong>#${activity.id} / ${escapeHTML(activity.author)}</strong><div class="hover-meta">${escapeHTML(partner.label)} / ${shortDate(activity.date)} / ${timeFormat.format(activity.date)} ${activity.zone}</div><div class="hover-meta">${activityIcons(activity)} ${escapeHTML(activityMapping(activity).label)} / ${escapeHTML(activity.type)} / ${activity.category}</div></header><pre>${escapeHTML(readableActivityText(activity.body))}</pre><footer><span>${activity.gap===null?"First activity":`${duration(activity.gap)} since #${activity.id-1}`}</span><span>${next?`${duration(next.date-activity.date)} until #${next.id}`:"Latest activity"}</span></footer></article>`;
+}
+function showTip(pointer,activity){
+  clearTimeout(tipHideTimer);
+  const tip=$("tooltip");
+  if(!tip.hidden&&tip.dataset.activityId===String(activity.id)) return;
+  const nearby=nearbyActivities(activity);
+  const column=(label,events,current=false)=>`<section class="hover-column${current?" current":""}" tabindex="0" aria-label="${label}"><h3>${label}${current?"":` / ${events.length}`}</h3>${events.map(hoverMessage).join("")||'<div class="hover-empty">No activities in this period.</div>'}</section>`;
+  tip.innerHTML=`<div class="hover-top"><span>${shortDate(d3.utcDay.offset(activity.date,-1))} - ${shortDate(d3.utcDay.offset(activity.date,1))}</span><button class="icon" id="close-preview" title="Close preview" aria-label="Close preview">${icon("x")}</button></div><div class="hover-columns">${column("Older",nearby.older)}${column("Activity #"+activity.id,[activity],true)}${column("Newer",nearby.newer)}</div>`;
+  tip.dataset.activityId=activity.id;tip.hidden=false;
+  const bounds=pointer.currentTarget?.getBoundingClientRect();
+  const pointerX=Number.isFinite(pointer.clientX)?pointer.clientX:bounds?.left||12;
+  const pointerY=Number.isFinite(pointer.clientY)?pointer.clientY:bounds?.bottom||12;
+  tip.style.left=Math.max(12,Math.min(pointerX-tip.offsetWidth/2,innerWidth-tip.offsetWidth-12))+"px";
+  tip.style.top=Math.max(12,Math.min(pointerY+14,innerHeight-tip.offsetHeight-12))+"px";
+  $("close-preview").onclick=hideTip;icons();
+}
+function hideTip(){clearTimeout(tipHideTimer);$("tooltip").hidden=true;}
+function scheduleHideTip(){clearTimeout(tipHideTimer);tipHideTimer=setTimeout(hideTip,200);}
+function activateMark(selection){
+  selection.attr("tabindex",0).attr("role","button").attr("aria-label",event=>`Activity ${event.id}, ${PARTNERS[partnerOf(event)].label}, ${shortDate(event.date)} ${timeFormat.format(event.date)} ${event.zone}`)
+    .attr("aria-haspopup","dialog").attr("aria-controls","tooltip").attr("data-mapping",event=>activityMapping(event).id)
+    .on("pointerenter",showTip).on("pointermove",showTip).on("focus",showTip)
+    .on("pointerleave",scheduleHideTip).on("blur",()=>{if(!$("tooltip").contains(document.activeElement))scheduleHideTip();}).on("click",(_,event)=>{hideTip();selectEvent(event.id,true);})
+    .on("keydown",(key,event)=>{if(key.key==="Enter"||key.key===" "){key.preventDefault();selectEvent(event.id,true);}});
+}
+function renderTimeline(){
+  hideTip();
+  const events=model.events,root=d3.select("#timeline");root.selectAll("*").remove();
+  const width=Math.max(700,Math.round(root.node().clientWidth)),height=355,left=190,right=22,first=new Date(Math.min(+events[0].date,+(model.phases[0]?.start||events[0].date))),last=model.end;
+  const domainEnd=+last===+first?new Date(+last+3600000):last;
+  const x=d3.scaleUtc().domain([first,domainEnd]).range([left,width-right]);
+  const y={sap:43,evonik:99,provider:155};
+  const svg=root.append("svg").attr("viewBox",`0 0 ${width} ${height}`).attr("role","img").attr("aria-label",`Case activity timeline with SAP, ${PARTNERS.evonik.label} and Provider for Outtasking lanes`);
+  const weekends=d3.utcDays(d3.utcDay.floor(first),d3.utcDay.offset(d3.utcDay.floor(domainEnd),1)).filter(date=>date.getUTCDay()===6||date.getUTCDay()===0);
+  const weekendX=date=>x(new Date(Math.max(+first,+date)));
+  const weekendWidth=date=>Math.max(0,x(new Date(Math.min(+domainEnd,+d3.utcDay.offset(date,1))))-weekendX(date));
+  svg.append("g").attr("class","weekend-bands").attr("aria-label","Saturday and Sunday").selectAll("rect").data(weekends).join("rect")
+    .attr("x",weekendX).attr("width",weekendWidth).attr("y",20).attr("height",255).attr("fill","#e4e7ec")
+    .append("title").text(date=>`${shortDate(date)} / Weekend`);
+  const shown=new Set(filteredEvents(false).map(event=>event.id));
+  ["sap","evonik","provider"].forEach(group=>{
+    svg.append("line").attr("x1",left).attr("x2",width-right).attr("y1",y[group]).attr("y2",y[group]).attr("stroke","#e7eaf0");
+    const label=PARTNERS[group].label;
+    svg.append("text").attr("x",left-14).attr("y",y[group]+4).attr("text-anchor","end").attr("fill",PARTNERS[group].color).attr("font-size",11).attr("font-weight",600).text(label.length>28?label.slice(0,25)+"...":label).append("title").text(label);
+  });
+  const segments=events.slice(1).map((event,index)=>({before:events[index],after:event}));
+  svg.append("g").selectAll("line").data(segments).join("line").attr("x1",d=>x(d.before.date)).attr("x2",d=>x(d.after.date)).attr("y1",d=>y[groupOf(d.before)]).attr("y2",d=>y[groupOf(d.after)]).attr("stroke","#ccd2db").attr("stroke-width",1).attr("opacity",.6);
+  const positions=new Map();
+  const markers=events.map(event=>{const key=groupOf(event)+dayKey(event.date),index=positions.get(key)||0;positions.set(key,index+1);return {...event,offset:(index%5-2)*7};});
+  const marks=svg.append("g").selectAll("path").data(markers).join("path").attr("class","event-mark")
+    .attr("d",event=>shapePath(activityShape(event))).attr("transform",event=>`translate(${x(event.date)},${y[groupOf(event)]+event.offset}) scale(${event.id===selectedId?1.3:1})`)
+    .attr("data-shape",activityShape).attr("data-filled",activityFilled).attr("fill",event=>activityFilled(event)?PARTNERS[partnerOf(event)].color:"none")
+    .attr("opacity",event=>shown.has(event.id)?1:.12).attr("stroke",event=>activityFilled(event)?"#fff":PARTNERS[partnerOf(event)].color).attr("stroke-width",event=>activityFilled(event)?1:event.id===selectedId?2:1.3);
+  activateMark(marks);
+  svg.append("g").attr("transform","translate(0,187)").call(d3.axisBottom(x).ticks(d3.utcMonth.every(1)).tickFormat(d3.utcFormat("%b %Y")).tickSize(4));
+  const phaseY={sap:219,customer:242,other:265};
+  if(model.phases.length){
+    ["sap","customer","other"].forEach(owner=>svg.append("text").attr("x",left-14).attr("y",phaseY[owner]+3).attr("text-anchor","end").attr("font-size",10).attr("fill",owner==="sap"?"#0075bb":owner==="customer"?"#830051":"#777f8c").text(owner==="sap"?"SAP ball":owner==="customer"?"Customer":"Other"));
+    const phaseMarks=svg.append("g").attr("class","status-phases").selectAll("line").data(model.phases).join("line")
+      .attr("class","status-phase").attr("x1",phase=>x(phase.start)).attr("x2",phase=>Math.max(x(phase.start)+.8,x(phase.end)))
+      .attr("y1",phase=>phaseY[phase.owner]).attr("y2",phase=>phaseY[phase.owner]).attr("stroke",phase=>phase.color)
+      .attr("stroke-width",7).attr("stroke-dasharray",phase=>phase.dash||null).attr("tabindex",0);
+    phaseMarks.append("title").text(phase=>`${phase.status} / ${phase.label}\n${shortDate(phase.start)} ${timeFormat.format(phase.start)} -> ${shortDate(phase.end)} ${timeFormat.format(phase.end)}\n${duration(phase.end-phase.start)}${phase.closed?"":" / ongoing through snapshot"}\n${phase.action}: ${phase.oldValue||"(empty)"} -> ${phase.newValue}\nRaw log: ${shortDate(phase.rawDate)} ${timeFormat.format(phase.rawDate)} ${phase.zone}`);
+    phaseMarks.attr("aria-label",phase=>`${phase.status}: ${shortDate(phase.start)} to ${shortDate(phase.end)}, ${duration(phase.end-phase.start)}`);
+  }
+  const overview=svg.append("g");
+  overview.append("rect").attr("x",left).attr("y",291).attr("width",width-left-right).attr("height",24).attr("fill","#f2f4f7");
+  overview.append("g").attr("class","weekend-overview").selectAll("rect").data(weekends).join("rect")
+    .attr("x",weekendX).attr("width",weekendWidth).attr("y",291).attr("height",24).attr("fill","#dce0e6");
+  overview.selectAll("line").data(events).join("line").attr("x1",event=>x(event.date)).attr("x2",event=>x(event.date)).attr("y1",295).attr("y2",311).attr("stroke",event=>PARTNERS[partnerOf(event)].color).attr("opacity",.55);
+  const brush=d3.brushX().extent([[left,289],[width-right,317]]).on("end",event=>{
+    if(!event.sourceEvent) return;
+    range=event.selection?event.selection.map(x.invert):null;selectedDay=null;render();
+  });
+  const brushGroup=svg.append("g").attr("aria-label","Select a date range").call(brush);
+  if(range) brushGroup.call(brush.move,range.map(x));
+  const labelHalfWidth=event=>String(event.id).length*3.5;
+  const dense=events.some((event,index)=>index>0&&x(event.date)-x(events[index-1].date)<labelHalfWidth(event)+labelHalfWidth(events[index-1])+10);
+  const numberCandidates=dense?events.filter((event,index)=>index===0||event.id%10===0||index===events.length-1):events;
+  let lastLabelRight=-Infinity;
+  const numbered=numberCandidates.filter(event=>{
+    const center=x(event.date),half=labelHalfWidth(event);
+    if(center-half<lastLabelRight+8) return false;
+    lastLabelRight=center+half;return true;
+  });
+  const numberAxis=svg.append("g").attr("class","activity-number-axis").attr("aria-label","Activity numbers");
+  numberAxis.append("text").attr("x",left-14).attr("y",343).attr("text-anchor","end").attr("font-size",10).attr("fill","#6a707c").text("Activities");
+  const numberTicks=numberAxis.selectAll("g").data(numbered).join("g").attr("class","activity-number-tick").attr("transform",event=>`translate(${x(event.date)},0)`);
+  numberTicks.append("line").attr("y1",320).attr("y2",326).attr("stroke","#aeb6c2");
+  numberTicks.append("text").attr("y",343).attr("text-anchor","middle").attr("font-size",11).attr("fill","#4e5663").text(event=>event.id);
+  numberTicks.append("title").text(event=>`Activity #${event.id} / ${shortDate(event.date)} / ${timeFormat.format(event.date)} ${event.zone}`);
+  $("timeline-range").textContent=`${shortDate(first)} - ${shortDate(last)} / ${new Set(events.map(event=>dayKey(event.date))).size} active days`;
+  $("range-label").textContent=range?`${shortDate(range[0])} - ${shortDate(range[1])}`:"Full case period";
+}
+function renderCalendar(){
+  const all=filteredEvents(false),grouped=d3.group(all,event=>dayKey(event.date));
+  const first=d3.utcMonth.floor(model.events[0].date),end=d3.utcMonth.offset(d3.utcMonth.floor(model.events.at(-1).date),1);
+  const root=$("calendar");root.replaceChildren();
+  $("calendar-caption").textContent=selectedDay?`Selected ${shortDate(new Date(selectedDay+"T00:00:00Z"))} / ${grouped.get(selectedDay)?.length||0} activities`:`${grouped.size} active days in current filter`;
+  for(const month of d3.utcMonths(first,end)){
+    const section=document.createElement("div");section.className="month";
+    section.innerHTML=`<h3>${escapeHTML(monthFormat.format(month))}</h3><div class="month-weekdays">${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((day,index)=>`<span${index>4?' class="weekend"':""}>${day}</span>`).join("")}</div>`;
+    const days=document.createElement("div");days.className="month-days";
+    const offset=(month.getUTCDay()+6)%7;
+    for(let i=0;i<offset;i++){const blank=document.createElement("span");blank.className="day empty";days.append(blank);}
+    for(const date of d3.utcDays(month,d3.utcMonth.offset(month,1))){
+      const key=dayKey(date),activities=grouped.get(key)||[],groups=new Set(activities.map(groupOf));
+      const cell=document.createElement(activities.length?"button":"span");
+      const weekend=date.getUTCDay()===6||date.getUTCDay()===0;
+      cell.className=`day${weekend?" weekend":""}${activities.length?" active":""}${groups.size>1?" mix":""}${selectedDay===key?" selected":""}`;
+      cell.title=`${shortDate(date)}${weekend?" / Weekend":""}`;
+      if(groups.size===1) cell.style.background=groupOf(activities[0])==="sap"?"#e8f4fc":groupOf(activities[0])==="evonik"?"#f7eaf2":"#fff0e1";
+      cell.innerHTML=`<span class="daynum">${date.getUTCDate()}</span><span class="ticks">${activities.map(event=>`<span class="tick-id" style="--color:${PARTNERS[partnerOf(event)].color}">${event.id}</span>`).join("")}</span>`;
+      if(activities.length){
+        cell.title=`${shortDate(date)}\n${activities.map(event=>`#${event.id} ${PARTNERS[partnerOf(event)].label} / ${event.category}`).join("\n")}`;
+        cell.setAttribute("aria-label",`${shortDate(date)}, ${activities.length} activities: ${activities.map(event=>`number ${event.id}, ${PARTNERS[partnerOf(event)].label}`).join("; ")}`);
+        cell.onclick=()=>{selectedDay=selectedDay===key?null:key;selectedId=activities[0].id;render();};
+      }
+      days.append(cell);
+    }
+    section.append(days);root.append(section);
+  }
+}
+function excerpt(event){
+  const text=event.body.replace(/^\s*(?:Hi|Hello|Dear|Greetings)[^\n]*\n/i,"").replace(/---[^\n]+---/g,"").replace(/\s+/g," ").trim();
+  return text||event.type;
+}
+function renderList(){
+  let rows=[...visible];
+  if($("sort").value==="newest") rows.reverse();
+  if($("sort").value==="longest") rows.sort((a,b)=>(b.gap||0)-(a.gap||0)||a.id-b.id);
+  $("activity-heading").textContent=selectedDay?`Activities / ${shortDate(new Date(selectedDay+"T00:00:00Z"))}`:"Activity stream";
+  $("activity-list").innerHTML=rows.map(event=>`<button class="activity${event.id===selectedId?" selected":""}" data-id="${event.id}" style="--color:${PARTNERS[partnerOf(event)].color}" aria-pressed="${event.id===selectedId}"><span class="number">#${event.id}</span><span><span class="activity-top"><span class="activity-author">${escapeHTML(event.author.replace(/\s*\(S\d+\)/,""))}</span><span class="subtle">${shortDate(event.date)} / ${timeFormat.format(event.date).slice(0,5)}</span></span><span class="activity-title">${escapeHTML(excerpt(event).slice(0,190))}</span><span class="activity-foot"><span class="tag">${escapeHTML(PARTNERS[partnerOf(event)].label)}</span><span>${event.category}</span><span class="gap-tag${event.gap>3*DAY?" long":""}">${event.gap!==null?`${duration(event.gap)} after #${event.id-1}`:"Case opened"}</span></span></span></button>`).join("")||'<div class="empty-state">No activities match the current filters.</div>';
+  $("activity-list").querySelectorAll("button[data-id]").forEach(button=>{
+    const activity=model.events[Number(button.dataset.id)-1];
+    button.querySelector(".activity-foot .tag").insertAdjacentHTML("afterend",activityIcons(activity));
+    button.onclick=()=>selectEvent(activity.id,true);
+  });
+}
+function renderDetail(){
+  const event=model.events.find(item=>item.id===selectedId);
+  if(!event){$("detail").innerHTML='<div class="message-body">No activity selected.</div>';return;}
+  const partner=PARTNERS[partnerOf(event)],index=visible.findIndex(item=>item.id===event.id),next=model.events[event.id],previous=model.events[event.id-2];
+  $("detail").style.setProperty("--color",partner.color);
+  $("detail").innerHTML=`<div class="detail-top"><div class="detail-controls"><span class="partner-label"><i class="dot" style="--color:${partner.color}"></i>${escapeHTML(partner.label)} / #${event.id}</span><div class="actions"><button class="icon" id="previous-activity" title="Previous filtered activity" aria-label="Previous filtered activity" ${index<=0?"disabled":""}>${icon("chevron-left")}</button><button class="icon" id="next-activity" title="Next filtered activity" aria-label="Next filtered activity" ${index<0||index>=visible.length-1?"disabled":""}>${icon("chevron-right")}</button></div></div><h2>${escapeHTML(event.author.replace(/\s*\(S\d+\)/,""))}</h2><div class="detail-meta"><span>${shortDate(event.date)} / ${timeFormat.format(event.date)} ${event.zone}</span><span>&middot; ${escapeHTML(event.type)}</span></div><div class="detail-meta" style="margin-top:7px"><span class="tag">${event.category}</span></div></div><div class="detail-waits"><div><strong>${previous?duration(event.date-previous.date):"--"}</strong><span>${previous?`Since #${previous.id} / ${escapeHTML(PARTNERS[partnerOf(previous)].label)}`:"First activity"}</span></div><div><strong>${next?duration(next.date-event.date):model.exported?duration(model.exported.date-event.date):"--"}</strong><span>${next?`Until #${next.id} / ${escapeHTML(PARTNERS[partnerOf(next)].label)}`:model.exported?"No next activity / through export":"Latest recorded activity"}</span></div></div><pre class="message-body" id="message-body"></pre><div class="detail-bottom">${escapeHTML(event.author)} / Original communication text</div>`;
+  $("message-body").textContent=readableActivityText(event.body);
+  $("detail").querySelector(".detail-meta").insertAdjacentHTML("afterend",`<div class="detail-meta" style="margin-top:7px">${activityIcons(event)}<span>${escapeHTML(activityMapping(event).label)}</span></div>`);
+  $("previous-activity").onclick=()=>{if(index>0) selectEvent(visible[index-1].id);};
+  $("next-activity").onclick=()=>{if(index>=0&&index<visible.length-1)selectEvent(visible[index+1].id);};
+}
+function selectEvent(id,scroll=false){
+  const event=model.events.find(item=>item.id===id);if(!event) return;
+  if(selectedDay&&dayKey(event.date)!==selectedDay) selectedDay=null;
+  selectedId=id;render();
+  if(scroll&&innerWidth<=740) $("detail").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderResponses(){
+  const turns=ownershipWindows(),max=Math.max(1,...turns.map(turn=>turn.wait));
+  const logged=model.phases.length>0;
+  $("response-description").textContent=logged?"Time holding the case until handoff; SAP queue and processing belong to the same ownership turn. Ongoing turns are excluded from medians.":"No status history supplied. Response windows are inferred from communication turns only.";
+  $("response-bars").innerHTML=`<div class="small">${logged?"MEDIAN COMPLETED OWNERSHIP TURN / ACTION LOG":"MEDIAN RESPONSE / COMMUNICATIONS ONLY"}</div>`+["sap","customer"].map(side=>{
+    const windows=turns.filter(turn=>turn.responder===side),value=d3.median(windows,turn=>turn.wait)||0;
+    return `<div class="response-row" style="--color:${side==="sap"?PARTNERS.sap.color:PARTNERS.evonik.color}"><span>${side==="sap"?"SAP":escapeHTML(PARTNERS.evonik.label)}</span><div class="response-track"><div class="response-fill" style="width:${100*value/max}%"></div></div><span class="response-value">${windows.length?duration(value):"--"}</span></div>`;
+  }).join("");
+  const gaps=caseActivityGaps().sort((a,b)=>b.wait-a.wait).slice(0,3);
+  $("longest-gaps").innerHTML=`<div class="small">LONGEST GAPS / ${model.actions.length?"COMMUNICATIONS + ACTION LOG":"COMMUNICATIONS"}</div>`+gaps.map(gap=>{
+    const phase=model.phases.find(p=>p.start<=gap.start&&p.end>gap.start);
+    return `<div class="response-row" style="grid-template-columns:90px 1fr auto"><span class="response-value" style="text-align:left">${duration(gap.wait)}</span><span class="small">${shortDate(gap.start)} - ${shortDate(gap.end)}<span class="gap-context">${escapeHTML(gap.from)} -> ${escapeHTML(gap.to)}${phase?` / ${escapeHTML(phase.status)}`:""}</span></span><button class="icon gap-jump" data-id="${gap.id}" title="Open nearby communication ${gap.id}" aria-label="Open nearby communication ${gap.id}">${icon("arrow-up-right")}</button></div>`;
+  }).join("");
+  document.querySelectorAll(".gap-jump").forEach(button=>button.onclick=()=>{resetFilters(false);selectEvent(Number(button.dataset.id),true);});
+  const zones=[...new Set(model.events.map(event=>event.zone))];
+  $("status-summary").hidden=!logged;
+  $("phase-key").hidden=!logged;
+  const statuses=[...new Set(model.phases.map(phase=>phase.status))];
+  $("status-totals").innerHTML=logged?`<table><thead><tr><th>New status</th><th>Ball with</th><th>Phases</th><th>Total elapsed</th><th>Longest phase</th></tr></thead><tbody>${statuses.map(status=>{
+    const phases=model.phases.filter(phase=>phase.status===status),info=statusInfo(status);
+    return `<tr><th>${escapeHTML(status)}</th><td>${info.label}</td><td>${phases.length}</td><td>${duration(phases.reduce((sum,p)=>sum+(p.end-p.start),0))}</td><td>${duration(Math.max(...phases.map(p=>p.end-p.start)))}</td></tr>`;
+  }).join("")}</tbody></table><h3>Recorded transitions (New Value controls the phase)</h3><div class="action-log-table"><table><thead><tr><th>Display time</th><th>Changed by</th><th>Old Value</th><th>New Value / action</th><th>Phase duration</th></tr></thead><tbody>${model.phases.map(phase=>`<tr><td title="Raw log: ${shortDate(phase.rawDate)} ${timeFormat.format(phase.rawDate)} ${phase.zone}">${shortDate(phase.start)} ${timeFormat.format(phase.start)}</td><td>${escapeHTML(phase.author)}</td><td>${escapeHTML(phase.oldValue||"(empty)")}</td><td>${escapeHTML(phase.status)}</td><td>${duration(phase.end-phase.start)}${phase.closed?"":" (ongoing)"}</td></tr>`).join("")}</tbody></table></div>`:"";
+  const alignment=model.actions.length?(model.alignment.verified?` Action-log display alignment: ${model.alignment.offset>=0?"+":""}${model.alignment.offset/3600000}h, supported by ${model.alignment.matches} matching SAP messages within 2 minutes; raw timestamps are retained in transition tooltips.`:" Action-log clock alignment could not be verified; raw export times are used and cross-source gaps may be affected."):"";
+  $("method-note").textContent=(logged?'Ownership follows action-log New Values: Sent to SAP = SAP queue, In Processing by SAP = SAP processing status, Case created / Not Sent to SAP / Customer Action / SAP Proposed Solution = customer side. Other values remain unassigned. Consecutive statuses on the same side form one turn; unknown ownership breaks a turn. Open phases run through the last observed snapshot, not the current clock. Processing status does not prove working time; a return without that status does not prove no work occurred.':'Communication turns are used only because no status phases were found. Repeated follow-ups do not restart the clock.')+` All metrics cover the full case, include nights/weekends, and are not SLA measurements. Export wall-clock labels: ${zones.join(" / ")}.`+alignment+` Last observed: ${shortDate(model.end)} ${timeFormat.format(model.end)}.`;
+}
+function render(){
+  if(!model) return;
+  visible=filteredEvents();
+  if(!visible.some(event=>event.id===selectedId)) selectedId=visible[0]?.id??null;
+  $("filter-count").textContent=`${visible.length} / ${model.events.length} activities`;
+  renderTimeline();renderCalendar();renderList();renderDetail();icons();
+}
+function resetFilters(redraw=true){
+  range=null;selectedDay=null;$("search").value="";$("hide-admin").checked=false;
+  document.querySelectorAll(".partner-toggle input").forEach(input=>input.checked=true);
+  if(redraw) render();
+}
+function loadCase(text,name){
+  if(!globalThis.d3) throw new Error("D3 could not load from the CDN. Check your network connection and reload.");
+  const next=parseCase(text);
+  PARTNERS.evonik.label=(next.fields.Customer||"Customer").replace(/^\d+\s*-\s*/,"").trim()||"Customer";
+  document.querySelectorAll("[data-customer-name]").forEach(element=>element.textContent=PARTNERS.evonik.label);
+  $("partners-button").title=`Assign authors to ${PARTNERS.evonik.label} or Provider for Outtasking`;
+  $("assignment-note").textContent=`SAP is identified from the message header. Other authors default to ${PARTNERS.evonik.label} unless their author name identifies a provider. Assign external authors below.`;
+  model=next;sourceName=name;selectedId=next.events.at(-1).id;resetFilters(false);
+  $("source-text").value=text;$("case-id").textContent=`CASE ${next.id}`;$("case-title").textContent=next.title;
+  const caseUrl=/^\d{24}$/.test(next.fields.ID||"")?`https://me.sap.com/case/${next.fields.ID}/overview`:"";
+  $("case-link").hidden=!caseUrl;
+  if(caseUrl) $("case-link").href=caseUrl;
+  else $("case-link").removeAttribute("href");
+  $("case-status").textContent=next.fields.Status||"Status not provided";
+  $("case-meta").innerHTML=["Customer","System","Component","Priority"].filter(key=>next.fields[key]).map(key=>`<span>${key} <b>${escapeHTML(next.fields[key])}</b></span>`).join("");
+  $("source-label").textContent=`Source: ${name} / ${next.events.length} communication entries`;
+  $("dashboard").hidden=false;$("notice").textContent="";$("notice").className="";
+  renderMetrics();renderResponses();render();
+}
+function showAssignments(){
+  if(!model){$("notice").textContent="Load a case before assigning partners.";return;}
+  $("assignment-storage-status").textContent="";
+  const authors=[...new Set(model.events.filter(event=>event.partner!=="sap").map(event=>event.author))].sort();
+  $("assignments").replaceChildren();
+  authors.forEach(author=>{
+    const row=document.createElement("div");row.className="assignment-row";
+    const first=model.events.find(event=>event.author===author),select=document.createElement("select");select.dataset.author=author;select.setAttribute("aria-label",`Partner for ${author}`);
+    for(const key of ["evonik","provider"]){const option=document.createElement("option");option.value=key;option.textContent=PARTNERS[key].label;select.append(option);}
+    select.value=groupOf(first);
+    row.innerHTML=`<div><strong>${escapeHTML(author.replace(/\s*\(S\d+\)/,""))}</strong><small>${model.events.filter(event=>event.author===author).length} activities</small></div>`;row.append(select);$("assignments").append(row);
+  });
+  $("partners-dialog").showModal();
+}
+document.querySelectorAll("[data-close]").forEach(button=>button.onclick=()=>$(button.dataset.close).close());
+$("source-button").onclick=()=>{$("source-message").textContent="";$("source-dialog").showModal();};
+$("partners-button").onclick=showAssignments;
+$("save-partners").onclick=()=>{
+  try{
+    const next=Object.assign(Object.create(null),assignments);
+    document.querySelectorAll("#assignments select").forEach(select=>next[select.dataset.author]=select.value);
+    saveAssignments(next);assignments=next;
+    $("partners-dialog").close();renderMetrics();renderResponses();render();
+  }catch(error){$("assignment-storage-status").textContent=error.message;}
+};
+$("clipboard").onclick=async()=>{
+  try{if(!navigator.clipboard?.readText) throw new Error("Clipboard access is unavailable");const text=await navigator.clipboard.readText();if(!text.trim())throw new Error("The clipboard is empty");$("source-text").value=text;$("source-message").textContent="Clipboard text loaded.";}
+  catch(error){$("source-message").textContent=`${error.message}. Paste directly into the text field instead.`;$("source-text").focus();}
+};
+$("analyze").onclick=()=>{try{loadCase($("source-text").value,"Pasted case text");$("source-dialog").close();}catch(error){$("source-message").textContent=error.message;}};
+$("open-file").onclick=()=>$("file").click();
+$("file").onchange=async event=>{const file=event.target.files[0];if(!file)return;try{loadCase(await file.text(),file.name);}catch(error){$("notice").textContent=error.message;$("notice").className="error";}event.target.value="";};
+document.querySelectorAll(".partner-toggle input").forEach(input=>input.onchange=render);
+$("hide-admin").onchange=render;$("sort").onchange=renderList;
+let searchTimer;$("search").oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(render,160);};
+$("clear-filters").onclick=()=>resetFilters();
+$("reset-range").onclick=()=>{range=null;selectedDay=null;render();};
+$("clear-day").onclick=()=>{selectedDay=null;render();};
+$("tooltip").onpointerenter=()=>clearTimeout(tipHideTimer);
+$("tooltip").onpointerleave=scheduleHideTip;
+$("tooltip").onfocusin=()=>clearTimeout(tipHideTimer);
+$("tooltip").onfocusout=event=>{if(!$("tooltip").contains(event.relatedTarget))scheduleHideTip();};
+document.addEventListener("keydown",event=>{if(event.key==="Escape")hideTip();});
+window.addEventListener("resize",()=>{if(model)renderTimeline();});
+icons();
+$("metrics").insertAdjacentElement("afterend",$("response-metrics"));
+document.querySelector(".timeline-band").insertAdjacentHTML("beforeend",'<div class="phase-key" id="phase-key" hidden><span><i class="queue" style="--color:#0075bb"></i>Sent to SAP / queue</span><span><i style="--color:#0075bb"></i>SAP processing status</span><span><i style="--color:#830051"></i>Customer side</span><span><i style="--color:#777f8c"></i>Other / unassigned</span></div>');
+if(globalThis.d3){renderMappingLegend();icons();}
+document.querySelector(".timeline-band .legend").insertAdjacentHTML("beforeend",'<span><i class="weekend-key"></i>Weekend</span>');
+fetch(DEFAULT_FILE,{cache:"no-store"}).then(response=>{if(!response.ok)throw new Error(`HTTP ${response.status}`);return response.text();}).then(text=>loadCase(text,DEFAULT_FILE)).catch(error=>{
+  $("notice").textContent=`Could not load ${DEFAULT_FILE}: ${error.message}. Open a text file or paste the case text.`;$("notice").className="error";
+  $("source-dialog").showModal();
+});
+</script>
+</body>
+</html>
