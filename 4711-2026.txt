@@ -1,0 +1,690 @@
+Incident:  4711 / 2026 - Certificate enrollment fails in PLX after keystore refresh
+ID	009999999900000047112026
+Customer	99047 - AsterVale Manufacturing Ltd. (fictional)
+Installation	0099900047 - Synthetic SSO Landscape
+System	PLX - Production Identity Services (fictional)
+Component	Identity Management and Single Sign-On (BC-IAM-SSO-SL)
+Status	In Processing by SAP
+Priority	High
+
+SYNTHETIC DEMONSTRATION CASE. All people, organizations, account identifiers,
+case references, attachments, diagnostic findings and proposed remedies below
+are invented. SAP product and workflow terms are retained for format compatibility.
+Domains ending in .example and addresses in 192.0.2.0/24 are documentation-only.
+Note numbers are fictional test references, not actual SAP recommendations.
+All timestamps use the same exported wall clock, including the Action Log.
+
+Communication
+2026/07/06 09:00:00 CET  -  Problem Description:  Leah Morgan (S0099900001)
+Hello Support,
+
+Certificate enrollment through the administration console fails in our fictional
+QLX development and PLX production systems after a scheduled keystore refresh.
+Existing certificates remain usable, but new enrollment requests return HTTP 500.
+
+Synthetic landscape inventory:
+QLX: kernel 789 PL111, JVM 8.1.120, dispatcher 920 PL11.
+PLX: kernel 789 PL123, JVM 8.1.121, dispatcher 920 PL12.
+The issue is reproducible in both systems. QLX can be used for non-production tests.
+
+Development console: https://qlx-wd01.corp.astervale.example/slac
+Production console: https://plx-wd01.corp.astervale.example/slac
+Synthetic log reference: DEMO-QLX-47001.
+
+Kind regards,
+Leah Morgan
+Northbridge Managed Services (fictional)
+
+2026/07/06 09:02:00 CET  -  Business Impact:  Leah Morgan (S0099900001)
+Certificate renewals for the fictional document exchange service cannot be completed.
+No production outage has occurred. The next renewal window is 2026/09/30.
+There is no confirmed workaround. Please prioritize investigation of the QLX test case.
+
+2026/07/06 09:05:00 CET  -  Info for SAP:  Leah Morgan (S0099900001)
+Contact Noah Blake (S0099900002) added.
+
+2026/07/06 09:06:00 CET  -  Info for SAP:  Leah Morgan (S0099900001)
+Contact Mila Hart (S0099900003) added.
+
+2026/07/07 08:00:00 CET  -  Info for Customer:  SAP
+Dear Leah,
+
+We have accepted the demonstration case and are reviewing the enrollment failure.
+Please keep the QLX development environment available for investigation.
+
+Best regards,
+Iris Stone
+SAP Support (fictional support contact)
+
+2026/07/07 08:20:00 CET  -  Info for Customer:  SAP
+Dear Leah,
+
+Could you provide the error screenshot and the exact steps used to refresh the keystore?
+Please include the synthetic log reference DEMO-QLX-47001 in your reply.
+
+Best regards,
+Iris Stone
+
+2026/07/07 11:00:00 CET  -  Info for SAP:  Leah Morgan (S0099900001)
+Attachment uploaded
+QLX_Enrollment_Error.png
+
+2026/07/07 11:05:00 CET  -  Info for SAP:  Leah Morgan (S0099900001)
+Hello Iris,
+
+The screenshot QLX_Enrollment_Error.png is attached. We removed the expired test CA,
+imported its replacement through the console and then requested a new test certificate.
+The request fails with DEMO-QLX-47001. The error did not occur before the refresh.
+
+Kind regards,
+Leah Morgan
+Northbridge Managed Services
+
+2026/07/07 13:00:00 CET  -  Info for Customer:  SAP
+Proposed Solution:
+Dear Leah,
+
+For this synthetic scenario, review fictional note 9000101 and compare the configured
+keystore permissions with the demonstration checklist. This is a test reference only.
+Please do not apply this invented note as a real production recommendation.
+
+Best regards,
+Iris Stone
+
+2026/07/07 15:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Dear Iris,
+
+The QLX permissions already match the fictional checklist in note 9000101.
+We repeated the enrollment test and received the same error. The proposed change
+has not resolved the issue. I will coordinate the next tests for AsterVale Manufacturing.
+
+Regards,
+Noah Blake
+AsterVale Manufacturing Ltd.
+
+2026/07/09 09:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Please collect a fresh QLX enrollment trace using the fictional test procedure 9000102.
+Record one failed request only and remove any secret material before sharing the trace.
+
+Best regards,
+Iris Stone
+
+2026/07/09 13:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Iris,
+
+We reproduced the error at 12:45 in QLX using local test user U900001.
+The trace contains the synthetic alias DEMO_CA_QLX_01 and no private key data.
+Please find QLX_Enrollment_Trace_0709.zip attached.
+
+Regards,
+Noah Blake
+
+2026/07/09 13:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Enrollment_Trace_0709.zip
+
+2026/07/10 10:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+The trace shows a synthetic authorization failure when the enrollment module reads
+DEMO_CA_QLX_01. We are comparing the application identity with the keystore grants.
+No additional customer action is required at this point.
+
+Best regards,
+Iris Stone
+
+2026/07/13 09:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Could you open the remote connection to QLX and provide the access procedure?
+Please maintain temporary credentials in the designated secure credential store,
+not in this case text.
+
+Best regards,
+Iris Stone
+
+2026/07/13 11:00:00 CET  -  Info for SAP:  Mila Hart (S0099900003)
+Hello Iris,
+
+The remote connection to QLX is open. The demonstration access procedure is attached
+as AsterVale_QLX_Access_v1.pdf. The temporary remote account is MSX9001.
+Credentials are maintained outside this export; this dummy case contains no password.
+
+Portal reference: https://support-gateway.astervale.example/qlx
+
+Regards,
+Mila Hart
+AsterVale Manufacturing Ltd.
+
+2026/07/13 11:01:00 CET  -  Info for SAP:  Mila Hart (S0099900003)
+Attachment uploaded
+AsterVale_QLX_Access_v1.pdf
+
+2026/07/14 08:00:00 CET  -  Info for Customer:  SAP
+Dear Mila,
+
+The QLX gateway is reachable, but the temporary credentials for MSX9001 are rejected.
+Could you check the account validity and confirm that the intended development
+system, rather than PLX production, is selected in the access profile?
+
+Best regards,
+Iris Stone
+
+2026/07/14 10:00:00 CET  -  Info for SAP:  Owen Reed (S0099900004)
+Hello Iris,
+
+I corrected the QLX access profile and renewed the temporary credentials in the secure
+store. The remote connection is open until 2026/07/17 18:00 CET.
+Please use MSX9001 through the gateway, without copying credentials into the case.
+
+Regards,
+Owen Reed
+Cobalt Support Services (fictional)
+
+2026/07/14 10:30:00 CET  -  Info for Customer:  SAP
+Dear Owen,
+
+I can now access QLX and reproduce the enrollment failure. We are reviewing the
+keystore grants and the console application's runtime identity.
+
+Best regards,
+Iris Stone
+
+2026/07/16 14:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Please provide the dispatcher routing summary and a short runtime trace for QLX.
+The synthetic hostname in the previous trace differs from the console entry point.
+We want to exclude a routing mismatch before requesting development assistance.
+
+Best regards,
+Iris Stone
+
+2026/07/16 16:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Iris,
+
+The console entry point is qlx-wd01.corp.astervale.example, documentation IP 192.0.2.41.
+The application instance is qlx-app01.corp.astervale.example, documentation IP 192.0.2.42.
+The dispatcher forwards inbound requests to that instance; no outbound proxy is used.
+QLX_Runtime_Routing_0716.zip contains the synthetic routing and runtime extracts.
+
+Regards,
+Noah Blake
+
+2026/07/16 16:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Runtime_Routing_0716.zip
+
+2026/07/20 09:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+The routing information is consistent. I will forward the case to the development
+team for review of the enrollment module. Related fictional case 4812 / 2026
+describes a different test condition and is not evidence of the same defect.
+
+Best regards,
+Iris Stone
+
+2026/07/20 09:30:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+I am taking over the development investigation. Could you provide the QLX component
+inventory and confirm the outcome of the last test after the keystore refresh?
+
+Best regards,
+Theo Brooks
+SAP Development Support (fictional support contact)
+
+2026/07/21 14:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+The latest test still fails in QLX. The component inventory is attached as
+QLX_Component_Inventory_0721.csv. No comparable change has been applied to PLX.
+
+Regards,
+Noah Blake
+
+2026/07/21 14:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Component_Inventory_0721.csv
+
+2026/07/23 10:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Could we arrange a joint QLX session to observe the request under the test user?
+Please suggest a time and keep production PLX outside the test scope.
+
+Best regards,
+Theo Brooks
+
+2026/07/23 11:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+We are available on Friday 2026/07/24 from 13:00 to 14:00 CET.
+Mila will maintain access. Meeting reference DEMO-MEET-4711 is fictional;
+the placeholder meeting URL is https://meet.astervale.example/demo-4711.
+
+Regards,
+Noah Blake
+
+2026/07/24 08:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+The session is confirmed for 13:00 CET using the supplied demonstration meeting reference.
+We will compare the application runtime identity and the keystore view in QLX.
+
+Best regards,
+Theo Brooks
+
+2026/07/24 14:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+During the session we confirmed that the alias is visible to the administrator but
+not to the enrollment module. A restart did not change the result. No production
+configuration was modified, and no credentials were included in the session notes.
+
+Regards,
+Noah Blake
+
+2026/07/24 14:30:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Thank you for the joint investigation. We are reviewing the authorization context
+identified during the QLX test. No additional action is requested today.
+
+Best regards,
+Theo Brooks
+
+2026/07/28 09:00:00 CET  -  Info for Customer:  SAP
+Proposed Solution:
+Dear Noah,
+
+For this demonstration only, please compare the explicit test-domain grant described
+in fictional note 9000103 with the current QLX permissions. This is not a real fix
+instruction and must not be applied outside the synthetic example.
+
+Best regards,
+Theo Brooks
+
+2026/07/28 12:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+The synthetic test grant makes no difference. We removed it again after validation.
+QLX_Keystore_Permissions_0728.txt records the before-and-after demonstration values.
+The original enrollment error is unchanged.
+
+Regards,
+Noah Blake
+
+2026/07/28 12:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Keystore_Permissions_0728.txt
+
+2026/07/30 09:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Please compare the read-only component inventory of PLX with QLX. We do not request
+any production change. The comparison should help identify differences in the
+enrollment module deployment.
+
+Best regards,
+Theo Brooks
+
+2026/08/03 10:00:00 CET  -  Info for SAP:  Owen Reed (S0099900004)
+Hello Theo,
+
+The read-only comparison is complete. PLX and QLX use different synthetic patch levels,
+but the enrollment error text is the same. PLX_QLX_Comparison_0803.csv is attached.
+No service restart or deployment was performed in PLX.
+
+Regards,
+Owen Reed
+Cobalt Support Services
+
+2026/08/03 10:01:00 CET  -  Info for SAP:  Owen Reed (S0099900004)
+Attachment uploaded
+PLX_QLX_Comparison_0803.csv
+
+2026/08/04 10:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Could you collect one fresh QLX trace after clearing only the demonstration request
+history? Please keep the existing CA and keystore entries unchanged.
+
+Best regards,
+Theo Brooks
+
+2026/08/05 11:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+The requested clean-run trace is attached as QLX_Clean_Run_0805.zip.
+The error occurs on the first enrollment request as well as subsequent requests.
+Synthetic correlation reference: DEMO-QLX-47002.
+
+Regards,
+Noah Blake
+
+2026/08/05 11:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Clean_Run_0805.zip
+
+2026/08/07 10:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+We have reproduced the synthetic authorization path in a demonstration environment.
+The development review remains in progress. No confirmed correction is available yet.
+
+Best regards,
+Theo Brooks
+
+2026/08/12 12:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Please provide the QLX enrollment module profile and the public alias metadata.
+Do not include private keys, passwords or credential-store exports.
+
+Best regards,
+Theo Brooks
+
+2026/08/12 14:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+QLX_Module_Profile_0812.txt contains the requested synthetic configuration.
+The public alias is DEMO_CA_QLX_01. The service identity is U900001.
+There is no secret material in the attachment description.
+
+Regards,
+Noah Blake
+
+2026/08/12 14:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Module_Profile_0812.txt
+
+2026/08/14 09:00:00 CET  -  Info for Customer:  SAP
+Proposed Solution:
+Dear Noah,
+
+A fictional candidate package, DEMO_ENROLL_FIX_A, is available for a QLX-only test.
+Please record the result and restore the baseline afterwards. This package name
+is synthetic and does not refer to downloadable SAP software.
+
+Best regards,
+Theo Brooks
+
+2026/08/14 16:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+The QLX-only candidate test did not resolve the enrollment failure. We restored the
+baseline and confirmed the same error. Please continue the development review.
+
+Regards,
+Noah Blake
+
+2026/08/17 09:00:00 CET  -  Info for SAP:  Mila Hart (S0099900003)
+Hello Theo,
+
+The remote connection to QLX has been extended to Friday 2026/08/21 18:00 CET.
+Temporary credentials for MSX9001 were renewed in the secure store.
+The gateway remains https://support-gateway.astervale.example/qlx.
+
+Regards,
+Mila Hart
+AsterVale Manufacturing Ltd.
+
+2026/08/18 11:00:00 CET  -  Info for Customer:  SAP
+Dear Mila,
+
+QLX access is working. We are checking whether the enrollment module retains an
+outdated view identifier after the keystore refresh. No PLX access is required.
+
+Best regards,
+Theo Brooks
+
+2026/08/21 10:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Please validate the second fictional candidate DEMO_ENROLL_FIX_B in QLX only.
+It changes the demonstration cache lookup rather than the keystore permissions.
+This remains a test scenario, not a production recommendation.
+
+Best regards,
+Theo Brooks
+
+2026/08/21 15:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+The candidate test completed, but enrollment still fails after a new browser session.
+The validation results are attached as QLX_Candidate_B_0821.txt.
+We restored the baseline again. PLX remains unchanged.
+
+Regards,
+Noah Blake
+
+2026/08/21 15:01:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Attachment uploaded
+QLX_Candidate_B_0821.txt
+
+2026/08/25 10:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Does the failure also occur with the demonstration administrative test identity?
+Please compare that outcome with U900001 without granting additional production access.
+
+Best regards,
+Theo Brooks
+
+2026/08/25 15:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+Both demonstration identities produce the same failure in QLX. No additional grant
+was required to reproduce the result, and PLX has not been modified.
+
+Regards,
+Noah Blake
+
+2026/08/28 11:00:00 CET  -  Info for Customer:  SAP
+Dear Owen,
+
+Could you recreate the demonstration keystore in QLX using the approved test backup
+and repeat one enrollment request? This request applies only to the fictional
+environment and is not a real operational procedure.
+
+Best regards,
+Theo Brooks
+
+2026/09/02 10:00:00 CET  -  Info for SAP:  Owen Reed (S0099900004)
+Hello Theo,
+
+The QLX demonstration keystore was recreated and the public CA alias imported again.
+The same enrollment error remains. QLX_Recreated_Keystore_0902.txt records the result.
+We restored the original test state after collecting the evidence.
+
+Regards,
+Owen Reed
+Cobalt Support Services
+
+2026/09/02 10:01:00 CET  -  Info for SAP:  Owen Reed (S0099900004)
+Attachment uploaded
+QLX_Recreated_Keystore_0902.txt
+
+2026/09/07 09:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+The development team is reviewing the latest QLX evidence. We have not identified
+a confirmed correction. The fictional related reference 4812 / 2026 has been ruled
+out as a direct match to this demonstration case.
+
+Best regards,
+Theo Brooks
+
+2026/09/15 11:00:00 CET  -  Info for Customer:  SAP
+Dear Noah,
+
+Please run one final QLX comparison using a newly created demonstration alias,
+DEMO_CA_QLX_02, and report whether the first request succeeds after a new session.
+Keep DEMO_CA_QLX_01 available for comparison and leave PLX unchanged.
+
+Best regards,
+Theo Brooks
+
+2026/09/17 13:00:00 CET  -  Info for SAP:  Noah Blake (S0099900002)
+Hello Theo,
+
+We completed the comparison with DEMO_CA_QLX_02 in QLX. The first and subsequent
+requests still fail after a new session. DEMO_CA_QLX_01 has the same result.
+The issue remains unresolved. Please continue the investigation under case 4711 / 2026.
+
+Regards,
+Noah Blake
+AsterVale Manufacturing Ltd.
+
+Contacts
+Role	Name	Time Zone	Primary Phone	Secondary Phone	E-Mail
+Reporter	Leah Morgan (S0099900001)	CET	Not assigned (synthetic)		leah.morgan@northbridge-services.example
+24h Contact	Noah Blake (S0099900002)	CET	Not assigned (synthetic)		noah.blake@astervale.example
+SECONDARY	Mila Hart (S0099900003)	CET	Not assigned (synthetic)		mila.hart@astervale.example
+System Opener	Owen Reed (S0099900004)	CET	Not assigned (synthetic)		owen.reed@cobalt-support.example
+
+Attachments
+File Name	Description	File Type	File Size	Created By	Created On
+QLX_Enrollment_Error.png	Synthetic enrollment screenshot	IMAGE/PNG	84.0 KB	Leah Morgan (S0099900001)	2026/07/07 11:00:00 CET
+QLX_Enrollment_Trace_0709.zip	Synthetic initial enrollment trace	APPLICATION/ZIP	1.2 MB	Noah Blake (S0099900002)	2026/07/09 13:01:00 CET
+AsterVale_QLX_Access_v1.pdf	Fictional access instructions; no passwords	APPLICATION/PDF	210.0 KB	Mila Hart (S0099900003)	2026/07/13 11:01:00 CET
+QLX_Runtime_Routing_0716.zip	Synthetic routing and runtime data	APPLICATION/ZIP	540.0 KB	Noah Blake (S0099900002)	2026/07/16 16:01:00 CET
+QLX_Component_Inventory_0721.csv	Synthetic component inventory	TEXT/CSV	3.2 KB	Noah Blake (S0099900002)	2026/07/21 14:01:00 CET
+QLX_Keystore_Permissions_0728.txt	Synthetic permission comparison	TEXT/PLAIN	5.1 KB	Noah Blake (S0099900002)	2026/07/28 12:01:00 CET
+PLX_QLX_Comparison_0803.csv	Read-only fictional landscape comparison	TEXT/CSV	4.6 KB	Owen Reed (S0099900004)	2026/08/03 10:01:00 CET
+QLX_Clean_Run_0805.zip	Synthetic clean-run trace	APPLICATION/ZIP	910.0 KB	Noah Blake (S0099900002)	2026/08/05 11:01:00 CET
+QLX_Module_Profile_0812.txt	Synthetic public metadata only	TEXT/PLAIN	2.4 KB	Noah Blake (S0099900002)	2026/08/12 14:01:00 CET
+QLX_Candidate_B_0821.txt	Fictional candidate validation results	TEXT/PLAIN	2.9 KB	Noah Blake (S0099900002)	2026/08/21 15:01:00 CET
+QLX_Recreated_Keystore_0902.txt	Synthetic keystore recreation results	TEXT/PLAIN	3.7 KB	Owen Reed (S0099900004)	2026/09/02 10:01:00 CET
+
+KBA/SAP Notes
+KBA/SAP Note Number	Note Text
+9000101	FICTIONAL: Demonstration enrollment permission checklist
+9000102	FICTIONAL: Demonstration trace collection procedure
+9000103	FICTIONAL: Demonstration test-domain grant comparison
+
+Action Log
+Changed On	Changed At	Changed By	Action	Old Value	New Value
+Monday 2026/07/06	09:00:00 CET	Leah Morgan (S0099900001)	Case created		0099999999 0000004711 2026
+ 	09:00:00 CET	Leah Morgan (S0099900001)	Component		BC-IAM-SSO-SL
+ 	09:00:00 CET	Leah Morgan (S0099900001)	Memo/Text changed		Problem Description
+ 	09:02:00 CET	Leah Morgan (S0099900001)	Memo/Text changed		Business Impact
+ 	09:05:00 CET	Leah Morgan (S0099900001)	Memo/Text changed		Info for SAP
+ 	09:06:00 CET	Leah Morgan (S0099900001)	Memo/Text changed		Info for SAP
+ 	09:07:00 CET	Leah Morgan (S0099900001)	Status	Not Sent to SAP	Sent to SAP
+Tuesday 2026/07/07	07:50:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	08:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	08:20:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	08:20:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	11:00:00 CET	Leah Morgan (S0099900001)	Memo/Text changed		Info for SAP
+ 	11:05:00 CET	Leah Morgan (S0099900001)	Memo/Text changed		Info for SAP
+ 	11:06:00 CET	Leah Morgan (S0099900001)	Status	Customer Action	Sent to SAP
+ 	11:10:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	13:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	13:00:00 CET	SAP	SAP Note add./rem.		9000101
+ 	13:00:00 CET	SAP	Status	In Processing by SAP	SAP Proposed Solution
+ 	15:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	15:01:00 CET	Noah Blake (S0099900002)	Status	SAP Proposed Solution	Sent to SAP
+Thursday 2026/07/09	08:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:00:00 CET	SAP	SAP Note add./rem.		9000102
+ 	09:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	13:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	13:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	13:02:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Friday 2026/07/10	09:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	10:00:00 CET	SAP	Memo/Text changed		Info for Customer
+Monday 2026/07/13	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	11:00:00 CET	Mila Hart (S0099900003)	Memo/Text changed		Info for SAP
+ 	11:01:00 CET	Mila Hart (S0099900003)	Memo/Text changed		Info for SAP
+ 	11:02:00 CET	Mila Hart (S0099900003)	Status	Customer Action	Sent to SAP
+Tuesday 2026/07/14	08:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	08:00:00 CET	SAP	Status	Sent to SAP	Customer Action
+ 	10:00:00 CET	Owen Reed (S0099900004)	Memo/Text changed		Info for SAP
+ 	10:01:00 CET	Owen Reed (S0099900004)	Status	Customer Action	Sent to SAP
+ 	10:25:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	10:30:00 CET	SAP	Memo/Text changed		Info for Customer
+Thursday 2026/07/16	14:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	14:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	16:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	16:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	16:02:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Monday 2026/07/20	08:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:10:00 CET	SAP	Assigned to	Iris Stone (fictional)	Theo Brooks (fictional)
+ 	09:30:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:30:00 CET	SAP	Status	In Processing by SAP	Customer Action
+Tuesday 2026/07/21	14:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	14:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	14:02:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Thursday 2026/07/23	09:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	10:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	10:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	11:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	11:01:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Friday 2026/07/24	07:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	08:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	14:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	14:30:00 CET	SAP	Memo/Text changed		Info for Customer
+Tuesday 2026/07/28	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:00:00 CET	SAP	SAP Note add./rem.		9000103
+ 	09:00:00 CET	SAP	Status	In Processing by SAP	SAP Proposed Solution
+ 	12:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	12:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	12:02:00 CET	Noah Blake (S0099900002)	Status	SAP Proposed Solution	Sent to SAP
+Thursday 2026/07/30	08:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+Monday 2026/08/03	10:00:00 CET	Owen Reed (S0099900004)	Memo/Text changed		Info for SAP
+ 	10:01:00 CET	Owen Reed (S0099900004)	Memo/Text changed		Info for SAP
+ 	10:02:00 CET	Owen Reed (S0099900004)	Status	Customer Action	Sent to SAP
+Tuesday 2026/08/04	09:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	10:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	10:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+Wednesday 2026/08/05	11:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	11:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	11:02:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Friday 2026/08/07	09:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	10:00:00 CET	SAP	Memo/Text changed		Info for Customer
+Wednesday 2026/08/12	12:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	12:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	14:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	14:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	14:02:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Friday 2026/08/14	08:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	09:00:00 CET	SAP	Status	In Processing by SAP	SAP Proposed Solution
+ 	16:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	16:01:00 CET	Noah Blake (S0099900002)	Status	SAP Proposed Solution	Sent to SAP
+Monday 2026/08/17	09:00:00 CET	Mila Hart (S0099900003)	Memo/Text changed		Info for SAP
+Tuesday 2026/08/18	10:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	11:00:00 CET	SAP	Memo/Text changed		Info for Customer
+Friday 2026/08/21	10:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	10:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	15:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	15:01:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	15:02:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Tuesday 2026/08/25	09:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	10:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	10:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+ 	15:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	15:01:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+Friday 2026/08/28	10:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	11:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	11:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+Wednesday 2026/09/02	10:00:00 CET	Owen Reed (S0099900004)	Memo/Text changed		Info for SAP
+ 	10:01:00 CET	Owen Reed (S0099900004)	Memo/Text changed		Info for SAP
+ 	10:02:00 CET	Owen Reed (S0099900004)	Status	Customer Action	Sent to SAP
+Monday 2026/09/07	08:30:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+ 	09:00:00 CET	SAP	Memo/Text changed		Info for Customer
+Tuesday 2026/09/15	11:00:00 CET	SAP	Memo/Text changed		Info for Customer
+ 	11:00:00 CET	SAP	Status	In Processing by SAP	Customer Action
+Thursday 2026/09/17	13:00:00 CET	Noah Blake (S0099900002)	Memo/Text changed		Info for SAP
+ 	13:01:00 CET	Noah Blake (S0099900002)	Status	Customer Action	Sent to SAP
+ 	13:02:00 CET	SAP	Status	Sent to SAP	In Processing by SAP
+2026/09/18 12:00:00 CET
